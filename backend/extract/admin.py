@@ -1,3 +1,7 @@
 from django.contrib import admin
+from .models import BRDExtraction , MOMExtraction
 
-# Register your models here.
+admin.site.register(BRDExtraction)
+admin.site.register(MOMExtraction)
+
+    
