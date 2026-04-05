@@ -2,7 +2,7 @@ from django.db import models
 
 class BRDExtraction(models.Model):
     transcript = models.TextField()
-    filled_schema = models.JSONField(default=dict)
+    extracted_data = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

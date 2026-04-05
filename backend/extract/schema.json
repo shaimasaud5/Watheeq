@@ -93,8 +93,7 @@
       "type": "object",
       "required": ["overview", "pain_points"],
       "properties": {
-        "overview": { "type": "string" },
-        "pain_points": { "type": "array", "items": { "type": "string" } }
+        "overview": { "type": "string" }
       }
     },
 
@@ -148,30 +147,13 @@
       }
       },
 
-      "glossary": {
-      "type": "array",
-      "items": {
-         "type": "object",
-         "required": ["term", "definition"],
-         "properties": {
-            "term": { "type": "string" },
-            "definition": { "type": "string" }
-         }
-      }
-      },
-
       "references": {
       "type": "array",
       "items": {
          "type": "string"
       }
-      },
+      }
 
-      "appendix": {
-      "type": "array",
-      "items": {
-         "type": "string"
-      }
-      }
+      
   }
 }
