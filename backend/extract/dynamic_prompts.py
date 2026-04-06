@@ -16,6 +16,13 @@ IMPORTANT:
 - Keep the output aligned with the template's sections and field intent as closely as possible.
 - If some information is missing, leave it empty rather than inventing values.
 - Use consistent JSON formatting.
+
+CRITICAL RULES:
+- Use clean and meaningful JSON keys only.
+- Do NOT generate malformed or broken keys like symbols or random characters.
+- Do NOT mix fields between sections.
+- Lists should contain only relevant fields.
+- Each section must strictly follow its intended meaning.
 """
 
     brd_extra = """
@@ -54,5 +61,5 @@ Uploaded document template content:
 Transcript:
 \"\"\"{transcript}\"\"\"
 
-Return ONLY the extracted JSON.
+Return ONLY clean, valid, well-structured JSON without any malformed keys.
 """.strip()

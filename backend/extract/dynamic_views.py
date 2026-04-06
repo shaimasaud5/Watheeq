@@ -4,48 +4,45 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
-# from rest_framework.parsers import MultiPartParser, FormParser
 
 from .models import BRDExtraction,MOMExtraction
 from .dynamic_prompts import build_dynamic_prompt
 from .llm_service import safe_json_loads
 import requests
-from .template_loader import load_template_from_json_file , extract_text_from_file
+from .template_loader import load_template_from_json_file 
 import os 
-from drf_spectacular.utils import extend_schema
 
+def fill_not_mentioned(data):
+    if isinstance(data, dict):
+        return {
+            k: fill_not_mentioned(v) if v not in ["", None, []] else "NOT MENTION"
+            for k, v in data.items()
+        }
+
+    elif isinstance(data, list):
+        if not data:
+            return "NOT MENTION"
+        return [fill_not_mentioned(item) for item in data]
+
+    return data
 class DynamicExtractAPIView(APIView):
-   #  parser_classes = [MultiPartParser, FormParser]
     permission_classes = [AllowAny]
 
     OLLAMA_URL = "http://ollama:11434/api/generate"
     MODEL_NAME = "llama3.2"
 
-   #  @extend_schema(
-   #  request={
-   #      'multipart/form-data': {
-   #          'type': 'object',
-   #          'properties': {
-   #              'doc_type': {'type': 'string'},
-   #              'transcript': {'type': 'string'},
-   #              'template_file': {'type': 'string', 'format': 'binary'},
-   #          },
-   #          'required': ['doc_type', 'transcript'],
-   #      }
-   #  },
-   #  responses={200: dict},
-# )
     def post(self, request, *args, **kwargs):
       doc_type = request.data.get("doc_type", "GENERIC")
       doc_type = str(doc_type).upper().strip()
 
       transcript = request.data.get("transcript")
-      template_file = request.data.get("template_file")
+      template_text = request.data.get("template_text")
       schema = request.data.get("schema")
 
       print("DOC TYPE:", doc_type)
       print("TRANSCRIPT RAW:", transcript)
       print("SCHEMA RAW:", schema)
+      
 
       if not doc_type or not isinstance(doc_type, str):
          return Response(
@@ -54,10 +51,11 @@ class DynamicExtractAPIView(APIView):
          )
       doc_type = doc_type.strip().upper()
 
-      if template_file:
-          structure_source = "template_file"
+      if template_text and isinstance(template_text, str) and template_text.strip():
+         structure_source = "template_text"
+         template_text = template_text.strip()
       else:
-          structure_source = "default_schema"
+         structure_source = "default_schema"
 
       if not transcript or not isinstance(transcript, str):
          return Response(
@@ -77,8 +75,8 @@ class DynamicExtractAPIView(APIView):
             )
 
          schema = load_template_from_json_file(schema_path)
-      elif structure_source == "template_file":
-          template=extract_text_from_file(template_file)
+      elif structure_source == "template_text":
+          template = template_text
       
       if structure_source == "default_schema":
          template = self._empty_from_schema(schema)
@@ -89,6 +87,9 @@ class DynamicExtractAPIView(APIView):
           extracted={}
 
       llm_result = self._extract_with_llm(transcript, template,doc_type)
+      if isinstance(llm_result, dict):
+         extracted = fill_not_mentioned(llm_result)
+
       if isinstance(llm_result, dict):
          extracted = self._merge_into_template(extracted, llm_result)
 
@@ -107,7 +108,7 @@ class DynamicExtractAPIView(APIView):
               {"error":f"unsupported doc_type"},
               status = status.HTTP_400_BAD_REQUEST,
           )
-
+      extracted = fill_not_mentioned(extracted)
       return Response(
          {
                "status": "ok",
@@ -146,48 +147,46 @@ class DynamicExtractAPIView(APIView):
 
         return llm_data if llm_data is not None else template
 
-    def _extract_with_llm(self, transcript: str, template: dict, doc_type: str):
-        print("PROMPT PREVIEW:", prompt[:1500])
-        print("RAW RESPONSE:", raw)
-        print("PARSED RESPONSE:", parsed)
-        if isinstance(template, dict):
-            #  default schema ( template بدون  )
-            if doc_type == "BRD":
+    def _extract_with_llm(self, transcript: str, template, doc_type: str):
+      prompt = None
+
+      #  الحالة 1: schema جاهزة (dict)
+      if isinstance(template, dict):
+         if doc_type == "BRD":
                from .prompts import build_brd_prompt
                prompt = build_brd_prompt(template, transcript)
 
-            elif doc_type == "MOM":
+         elif doc_type == "MOM":
                from .mom_prompts import build_mom_extraction_prompt
                import json
                schema_text = json.dumps(template, ensure_ascii=False)
                prompt = build_mom_extraction_prompt(transcript, schema_text)
 
-            else:
-               prompt = ""
+      #  الحالة 2: template_text (نص من pdf/docx)
+      else:
+         from .dynamic_prompts import build_dynamic_prompt
+         prompt = build_dynamic_prompt(template, transcript, doc_type)
 
-        else:
-            #  template_file (pdf/docx)
-            if doc_type == "BRD":
-               prompt = build_brd_prompt(template, transcript)
-            else:
-               prompt = build_dynamic_prompt(template, transcript, doc_type)
+      #  حماية
+      if not prompt:
+         raise ValueError(f"Failed to build prompt for doc_type: {doc_type}")
 
-        payload = {
-            "model": self.MODEL_NAME,
-            "prompt": prompt,
-            "stream": False,
-            "format": "json",
-            "options": {"temperature": 0},
-        }
+      payload = {
+         "model": self.MODEL_NAME,
+         "prompt": prompt,
+         "stream": False,
+         "format": "json",
+         "options": {"temperature": 0},
+      }
 
-        try:
-            resp = requests.post(self.OLLAMA_URL, json=payload, timeout=350)
-            resp.raise_for_status()
-            raw = resp.json().get("response", "")
-            print("DYNAMIC RAW RESPONSE:", raw[:1000])
-        except Exception as e:
-            print("DYNAMIC OLLAMA ERROR:", str(e))
-            return None
+      try:
+         resp = requests.post(self.OLLAMA_URL, json=payload, timeout=350)
+         resp.raise_for_status()
+         raw = resp.json().get("response", "")
+         print("DYNAMIC RAW RESPONSE:", raw[:1000])
+      except Exception as e:
+         print("DYNAMIC OLLAMA ERROR:", str(e))
+         return None
 
-        parsed = safe_json_loads(raw)
-        return parsed if isinstance(parsed, dict) else None
+      parsed = safe_json_loads(raw)
+      return parsed if isinstance(parsed, dict) else None
