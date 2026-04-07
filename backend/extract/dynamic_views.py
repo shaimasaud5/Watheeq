@@ -96,12 +96,14 @@ class DynamicExtractAPIView(APIView):
       if doc_type == "BRD":
          obj=BRDExtraction.objects.create(
             transcript=transcript,
-            extracted_data=extracted
+            # extracted_data
+            filled_schema=extracted
          )
       elif doc_type == "MOM":
          obj=MOMExtraction.objects.create(
             transcript=transcript,
-            extracted_data=extracted
+            # extracted_data
+            filled_schema=extracted
          )
       else:
           return Response(

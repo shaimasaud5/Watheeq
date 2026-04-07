@@ -2,7 +2,8 @@ from django.db import models
 
 class BRDExtraction(models.Model):
     transcript = models.TextField()
-    extracted_data = models.JSONField()
+    # extracted_data 
+    filled_schema = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -11,7 +12,8 @@ class BRDExtraction(models.Model):
 
 class MOMExtraction(models.Model):
     transcript = models.TextField()
-    extracted_data = models.JSONField()
+    # extracted_data 
+    filled_schema= models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

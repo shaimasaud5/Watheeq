@@ -40,7 +40,8 @@ class ExtractAPIView(APIView):
 
         BRDExtraction.objects.create(
             transcript=transcript,
-            extracted_data=extracted
+            # extracted_data
+            filled_schema=extracted
         )
 
         return Response(
@@ -111,7 +112,8 @@ def extract_mom(request):
         result = extract_mom_with_llm(transcript)
         MOMExtraction.objects.create(
             transcript=transcript,
-            extracted_data=result
+            # extracted_data
+            filled_schema=result
         )
 
         return Response({
