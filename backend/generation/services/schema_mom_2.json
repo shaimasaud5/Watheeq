@@ -1,0 +1,41 @@
+{
+  "meeting_info": {
+    "meeting_title": "Smart Building IoT System - Requirements Review",
+    "date": "2026-04-02",
+    "time": "2:00 PM",
+    "location": "Virtual - Microsoft Teams",
+    "facilitator": "Noura Al-Otaibi"
+  },
+  "attendees": [
+    {"name": "Noura Al-Otaibi", "role": "Project Manager"},
+    {"name": "Ibrahim Qasim", "role": "IoT Solutions Architect"},
+    {"name": "Fatima Al-Zahrani", "role": "Business Analyst"},
+    {"name": "James Wilson", "role": "Vendor Technical Representative"},
+    {"name": "Abdullah Nouri", "role": "Facilities Manager"}
+  ],
+  "agenda": [
+    "Review of draft requirements document",
+    "Vendor hardware compatibility discussion",
+    "Energy management module scope confirmation",
+    "Data privacy and compliance requirements",
+    "Risk review and mitigation strategies",
+    "Next steps and timeline confirmation"
+  ],
+  "discussion_summary": "Noura started the session by reviewing the draft requirements document prepared by Fatima. Ibrahim highlighted that three of the proposed sensor types were not compatible with the current building network infrastructure and would require additional cabling work estimated at 3 weeks. James confirmed that the vendor can supply compatible alternatives but lead time is 6 weeks from order placement. Abdullah emphasized that energy reporting must align with the Saudi Green Building Standard requirements and requested this be added as a mandatory functional requirement. The team discussed data privacy concerns around occupancy tracking sensors and agreed that anonymized aggregated data only would be collected in common areas. Fatima flagged that the current requirements document does not address system behavior during network outages and requested Ibrahim to define the offline fallback behavior before next meeting.",
+  "decisions": [
+    "Alternative sensor types from vendor approved subject to cost confirmation",
+    "Energy reporting module must comply with Saudi Green Building Standard",
+    "Occupancy tracking limited to anonymized aggregated data in common areas only",
+    "Offline fallback behavior to be defined and added to requirements before sign-off",
+    "Procurement process to start immediately to account for 6-week hardware lead time"
+  ],
+  "action_items": [
+    {"task": "Update requirements document with Saudi Green Building Standard alignment", "owner": "Fatima Al-Zahrani", "due_date": "2026-04-09", "status": "open"},
+    {"task": "Define system offline fallback behavior specification", "owner": "Ibrahim Qasim", "due_date": "2026-04-07", "status": "open"},
+    {"task": "Submit hardware quotation for alternative sensor types", "owner": "James Wilson", "due_date": "2026-04-06", "status": "open"},
+    {"task": "Initiate procurement approval process for hardware order", "owner": "Noura Al-Otaibi", "due_date": "2026-04-10", "status": "open"},
+    {"task": "Confirm cabling work schedule with facilities team", "owner": "Abdullah Nouri", "due_date": "2026-04-08", "status": "open"}
+  ],
+  "next_meeting": "April 9, 2026 at 2:00 PM — Requirements Sign-Off Review",
+  "notes": "James will not be available on April 8, meetings should avoid that date. Ibrahim requested that all technical specifications be shared at least 48 hours before the next session."
+}

@@ -1,0 +1,315 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>مشروع جديد — وثيق</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --ink:#1A2E4A;--blue:#1A5FAA;--bm:#2D7DD2;--bl:#EAF3FF;--sky:#D6EAFF;
+  --w:#FFFFFF;--paper:#F0F5FB;--rule:#C8DCF0;--muted:#5B7FA6;--dark:#0D1E33;--mid:#1A3050;
+  --display:'DM Serif Display',serif;--body:'Cairo',sans-serif;--error:#EF4444;
+}
+body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height:100vh;margin:0;}
+.page{display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{background:var(--dark);display:flex;flex-direction:column;width:260px;min-width:260px;flex-shrink:0;min-height:100vh;}
+.sb-logo{padding:1.6rem 1.8rem 1.4rem;border-bottom:1px solid rgba(255,255,255,0.07);}
+.sb-logo img{height:70px;width:auto;filter:invert(80%) sepia(20%) saturate(200%) hue-rotate(190deg) brightness(1.2);}
+.nav-items{flex:1;display:flex;flex-direction:column;gap:3px;padding:1.2rem 1rem;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;font-size:15px;color:rgba(255,255,255,0.45);cursor:pointer;text-decoration:none;transition:all 0.15s;}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.85);}
+.nav-item.active{background:rgba(45,125,210,0.2);color:var(--sky);border:1px solid rgba(45,125,210,0.3);}
+.nav-item svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0;}
+.sb-bottom{border-top:1px solid rgba(255,255,255,0.07);padding:1rem;position:relative;}
+.user-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;cursor:pointer;}
+.user-row:hover{background:rgba(255,255,255,0.05);}
+.avatar{width:42px;height:42px;border-radius:50%;border:2px solid rgba(45,125,210,0.5);overflow:hidden;flex-shrink:0;background:var(--mid);display:flex;align-items:center;justify-content:center;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.avatar-initials{font-size:15px;font-weight:700;color:var(--sky);}
+.user-info{flex:1;}
+.user-name{font-size:15px;font-weight:700;color:rgba(255,255,255,0.9);}
+.user-pos{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.chevron-icon{width:15px;height:15px;stroke:rgba(255,255,255,0.3);fill:none;stroke-width:2;transition:transform 0.2s;}
+.chevron-icon.open{transform:rotate(180deg);}
+.dropdown{position:absolute;bottom:80px;right:8px;left:8px;background:var(--mid);border:1px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;display:none;z-index:100;}
+.dropdown.show{display:block;}
+.dd-item{display:flex;align-items:center;gap:10px;padding:12px 16px;font-size:14px;color:rgba(255,255,255,0.6);cursor:pointer;text-decoration:none;}
+.dd-item:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.9);}
+.dd-item svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;}
+.dd-sep{height:1px;background:rgba(255,255,255,0.07);}
+.dd-logout{color:rgba(239,68,68,0.8)!important;}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--w);border-bottom:1px solid var(--rule);padding:1.1rem 2rem;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:40;}
+.back-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:1px solid var(--rule);cursor:pointer;text-decoration:none;transition:border-color 0.2s;}
+.back-btn:hover{border-color:var(--bm);}
+.back-btn svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;}
+.topbar-title{font-size:17px;font-weight:700;color:var(--ink);}
+
+/* CONTENT */
+.content{padding:2rem;display:flex;flex-direction:column;gap:1.5rem;flex:1;}
+
+/* SECTION */
+.section{background:var(--w);border:1px solid var(--rule);border-radius:16px;overflow:hidden;}
+.section-header{padding:1rem 1.5rem;border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:10px;background:var(--w);}
+.section-icon{width:32px;height:32px;border-radius:8px;background:var(--bl);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.section-icon svg{width:15px;height:15px;stroke:var(--bm);fill:none;stroke-width:2;}
+.section-title{font-size:15px;font-weight:700;color:var(--ink);}
+.section-body{padding:1.5rem;display:flex;flex-direction:column;gap:1.2rem;}
+
+/* FIELDS */
+.field-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+.field-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:13px;font-weight:600;color:var(--ink);}
+.required{color:var(--error);margin-left:2px;}
+.form-input{height:44px;border:1.5px solid var(--rule);border-radius:100px;padding:0 16px;font-size:14px;font-family:var(--body);color:var(--ink);background:var(--w);outline:none;transition:border-color 0.2s;}
+.form-input:focus{border-color:var(--bm);box-shadow:0 0 0 3px rgba(45,125,210,0.1);}
+.form-select{height:44px;border:1.5px solid var(--rule);border-radius:100px;padding:0 16px;font-size:14px;font-family:var(--body);color:var(--ink);background:var(--w);outline:none;cursor:pointer;appearance:none;transition:border-color 0.2s;}
+.form-select:focus{border-color:var(--bm);}
+.field-error{font-size:12px;color:var(--error);margin-top:2px;}
+
+/* DOC TYPE */
+.doc-type-wrap{display:flex;align-items:center;gap:1.5rem;}
+.doc-type-label{font-size:13px;font-weight:600;color:var(--ink);}
+.radio-group{display:flex;gap:12px;}
+.radio-opt{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink);cursor:pointer;}
+.radio-opt input[type="radio"]{accent-color:var(--bm);width:16px;height:16px;cursor:pointer;}
+
+/* UPLOAD */
+.upload-box{border:2px dashed var(--rule);border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;background:var(--paper);transition:border-color 0.2s;}
+.upload-box:hover{border-color:var(--bm);}
+.upload-box svg{width:32px;height:32px;stroke:var(--muted);fill:none;stroke-width:1.5;margin-bottom:0.5rem;}
+.upload-box p{font-size:13px;color:var(--muted);margin-bottom:0.8rem;}
+.upload-btn-label{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;background:var(--bl);color:var(--blue);border:1px solid var(--rule);border-radius:100px;font-size:13px;cursor:pointer;font-weight:600;}
+.upload-file-name{font-size:12px;color:var(--bm);margin-top:8px;display:none;}
+
+/* ALERT */
+.form-alert{padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:4px;}
+.alert-error{background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA;}
+
+/* ACTIONS */
+.actions{display:flex;justify-content:flex-end;gap:10px;}
+.btn-cancel{height:46px;padding:0 24px;background:var(--paper);border:1px solid var(--rule);border-radius:100px;font-size:14px;font-family:var(--body);color:var(--muted);cursor:pointer;text-decoration:none;display:flex;align-items:center;}
+.btn-cancel:hover{border-color:var(--bm);color:var(--bm);}
+.btn-generate{height:46px;padding:0 28px;background:var(--bm);color:#fff;border:none;border-radius:100px;font-size:14px;font-family:var(--body);font-weight:700;cursor:pointer;transition:background 0.2s;}
+.btn-generate:hover{background:var(--blue);}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <img src="{% static 'img/logo.png' %}" alt="وثيق"/>
+    </div>
+    <nav class="nav-items">
+      <a href="{% url 'frontend:home' %}" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        الصفحة الرئيسية
+      </a>
+      <a href="{% url 'frontend:search' %}" class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        البحث
+      </a>
+      <a href="{% url 'frontend:projects' %}" class="nav-item">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        المشاريع
+      </a>
+      <a href="{% url 'frontend:create_project' %}" class="nav-item active">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        مشروع جديد
+      </a>
+      <a href="#" class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        المساعدة
+      </a>
+    </nav>
+    <div class="sb-bottom">
+      <div class="user-row" onclick="toggleDropdown()">
+        <div class="avatar">
+          {% if request.user.gender == 'F' %}
+            <img src="{% static 'img/avatar_female.png' %}" alt=""/>
+          {% elif request.user.gender == 'M' %}
+            <img src="{% static 'img/avatar_male.png' %}" alt=""/>
+          {% else %}
+            <div class="avatar-initials">{{ request.user.username|slice:":1"|upper }}</div>
+          {% endif %}
+        </div>
+        <div class="user-info">
+          <div class="user-name">{{ request.user.username }}</div>
+          <div class="user-pos">{{ request.user.position|default:"مستخدم" }}</div>
+        </div>
+        <svg class="chevron-icon" id="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="dropdown" id="dropdown">
+        <a href="{% url 'frontend:profile' %}" class="dd-item">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          الملف الشخصي
+        </a>
+        <div class="dd-sep"></div>
+        <a href="{% url 'frontend:logout' %}" class="dd-item dd-logout">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          تسجيل الخروج
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <a href="{% url 'frontend:projects' %}" class="back-btn">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <div class="topbar-title">مشروع جديد</div>
+    </div>
+
+    <div class="content">
+
+      {% if error %}
+      <div class="form-alert alert-error">{{ error }}</div>
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- معلومات المشروع -->
+        <div class="section" style="margin-bottom:1.5rem;">
+          <div class="section-header">
+            <div class="section-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+            <div class="section-title">معلومات المشروع</div>
+          </div>
+          <div class="section-body">
+            <div class="field-grid-3">
+              <div class="field">
+                <label><span class="required">*</span> اسم المشروع</label>
+                <input class="form-input" type="text" name="name" placeholder="اسم المشروع" required/>
+              </div>
+              <div class="field">
+                <label><span class="required">*</span> العميل</label>
+                <input class="form-input" type="text" name="client" placeholder="اسم العميل" required/>
+              </div>
+              <div class="field">
+                <label><span class="required">*</span> المدير</label>
+                <input class="form-input" type="text" name="manager" placeholder="اسم المدير" required/>
+              </div>
+            </div>
+            <div class="field-grid-3">
+              <div class="field">
+                <label>المجال</label>
+                <input class="form-input" type="text" name="domain" placeholder="مثال: تقنية المعلومات"/>
+              </div>
+              <div class="field">
+                <label>نوع المشروع</label>
+                <input class="form-input" type="text" name="project_type" placeholder="مثال: تحليل المتطلبات"/>
+              </div>
+              <div class="field">
+                <label>المستخدم المستهدف</label>
+                <input class="form-input" type="text" name="target_user" placeholder="مثال: محلل الأعمال"/>
+              </div>
+            </div>
+            <div class="doc-type-wrap">
+              <div class="doc-type-label"><span class="required">*</span> نوع المستند:</div>
+              <div class="radio-group">
+                <label class="radio-opt">
+                  <input type="radio" name="doc_type" value="BRD" checked/> BRD
+                </label>
+                <label class="radio-opt">
+                  <input type="radio" name="doc_type" value="MOM"/> MOM
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- رفع القالب -->
+        <div class="section" style="margin-bottom:1.5rem;">
+          <div class="section-header">
+            <div class="section-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <div class="section-title">رفع القالب (اختياري)</div>
+          </div>
+          <div class="section-body">
+            <div class="upload-box" onclick="document.getElementById('template_file').click()">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <p>ارفع ملف PDF أو DOCX كقالب للمستند</p>
+              <label class="upload-btn-label">
+                <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--blue);fill:none;stroke-width:2;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                اختر ملفاً
+              </label>
+              <input type="file" id="template_file" name="template_file" accept=".pdf,.docx" style="display:none;" onchange="showFileName(this)"/>
+              <div class="upload-file-name" id="file-name"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- إعداد الاجتماع -->
+        <div class="section" style="margin-bottom:1.5rem;">
+          <div class="section-header">
+            <div class="section-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+            <div class="section-title">إعداد الاجتماع</div>
+          </div>
+          <div class="section-body">
+            <div class="field-grid-2">
+              <div class="field">
+                <label><span class="required">*</span> عنوان الاجتماع</label>
+                <input class="form-input" type="text" name="meeting_title" placeholder="مثال: اجتماع تحديد المتطلبات" required/>
+              </div>
+              <div class="field">
+                <label><span class="required">*</span> المنصة</label>
+                <select class="form-select" name="platform" required>
+                  <option value="">اختر المنصة</option>
+                  <option value="zoom">Zoom</option>
+                  <option value="teams">Microsoft Teams</option>
+                  <option value="google_meet">Google Meet</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label><span class="required">*</span> رابط الاجتماع</label>
+              <input class="form-input" type="url" name="meeting_link" placeholder="https://..." required/>
+            </div>
+          </div>
+        </div>
+
+        <!-- الأزرار -->
+        <div class="actions">
+          <a href="{% url 'frontend:projects' %}" class="btn-cancel">إلغاء</a>
+          <button type="submit" class="btn-generate">إنشاء المشروع ←</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>
+<script>
+function toggleDropdown(){
+  const d=document.getElementById('dropdown');
+  const c=document.getElementById('chevron');
+  d.classList.toggle('show');
+  c.classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.sb-bottom')){
+    document.getElementById('dropdown').classList.remove('show');
+    document.getElementById('chevron').classList.remove('open');
+  }
+});
+function showFileName(input){
+  const el=document.getElementById('file-name');
+  if(input.files.length>0){
+    el.textContent=input.files[0].name;
+    el.style.display='block';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{{ project.name }} — وثيق</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --ink:#1A2E4A;--blue:#1A5FAA;--bm:#2D7DD2;--bl:#EAF3FF;--sky:#D6EAFF;
+  --w:#FFFFFF;--paper:#F0F5FB;--rule:#C8DCF0;--muted:#5B7FA6;--dark:#0D1E33;--mid:#1A3050;
+  --display:'DM Serif Display',serif;--body:'Cairo',sans-serif;
+}
+body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height:100vh;margin:0;}
+.page{display:flex;min-height:100vh;}
+.sidebar{background:var(--dark);display:flex;flex-direction:column;width:260px;min-width:260px;flex-shrink:0;min-height:100vh;}
+.sb-logo{padding:1.6rem 1.8rem 1.4rem;border-bottom:1px solid rgba(255,255,255,0.07);}
+.sb-logo img{height:70px;width:auto;filter:invert(80%) sepia(20%) saturate(200%) hue-rotate(190deg) brightness(1.2);}
+.nav-items{flex:1;display:flex;flex-direction:column;gap:3px;padding:1.2rem 1rem;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;font-size:15px;color:rgba(255,255,255,0.45);cursor:pointer;text-decoration:none;transition:all 0.15s;}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.85);}
+.nav-item.active{background:rgba(45,125,210,0.2);color:var(--sky);border:1px solid rgba(45,125,210,0.3);}
+.nav-item svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0;}
+.sb-bottom{border-top:1px solid rgba(255,255,255,0.07);padding:1rem;position:relative;}
+.user-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;cursor:pointer;}
+.user-row:hover{background:rgba(255,255,255,0.05);}
+.avatar{width:42px;height:42px;border-radius:50%;border:2px solid rgba(45,125,210,0.5);overflow:hidden;flex-shrink:0;background:var(--mid);display:flex;align-items:center;justify-content:center;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.avatar-initials{font-size:15px;font-weight:700;color:var(--sky);}
+.user-info{flex:1;}
+.user-name{font-size:15px;font-weight:700;color:rgba(255,255,255,0.9);}
+.user-pos{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.chevron-icon{width:15px;height:15px;stroke:rgba(255,255,255,0.3);fill:none;stroke-width:2;transition:transform 0.2s;}
+.chevron-icon.open{transform:rotate(180deg);}
+.dropdown{position:absolute;bottom:80px;right:8px;left:8px;background:var(--mid);border:1px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;display:none;z-index:100;}
+.dropdown.show{display:block;}
+.dd-item{display:flex;align-items:center;gap:10px;padding:12px 16px;font-size:14px;color:rgba(255,255,255,0.6);cursor:pointer;text-decoration:none;}
+.dd-item:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.9);}
+.dd-item svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;}
+.dd-sep{height:1px;background:rgba(255,255,255,0.07);}
+.dd-logout{color:rgba(239,68,68,0.8)!important;}
+.main{flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--w);border-bottom:1px solid var(--rule);padding:1.1rem 2rem;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:40;}
+.back-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:1px solid var(--rule);cursor:pointer;text-decoration:none;transition:border-color 0.2s;}
+.back-btn:hover{border-color:var(--bm);}
+.back-btn svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;}
+.topbar-title{font-size:17px;font-weight:700;color:var(--ink);flex:1;}
+.content{padding:2rem;flex:1;display:flex;flex-direction:column;gap:1.5rem;}
+.proj-header{background:var(--dark);border-radius:16px;padding:1.8rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.proj-name{font-family:var(--display);font-size:1.9rem;color:#fff;margin-bottom:10px;}
+.proj-meta{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.proj-meta-item{display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,0.5);}
+.proj-meta-item svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;}
+.proj-meta-item strong{color:rgba(255,255,255,0.85);font-weight:600;}
+.proj-badge{padding:5px 16px;border-radius:100px;font-size:12px;font-weight:700;background:rgba(45,125,210,0.2);color:var(--sky);border:1px solid rgba(45,125,210,0.3);}
+.tabs-card{background:var(--w);border:1px solid var(--rule);border-radius:16px;overflow:hidden;}
+.tabs-nav{display:flex;border-bottom:1px solid var(--rule);}
+.tab-btn{flex:1;padding:1rem 0.5rem;font-size:14px;font-weight:600;font-family:var(--body);color:var(--muted);background:transparent;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.tab-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;}
+.tab-btn:hover{color:var(--bm);}
+.tab-btn.active{color:var(--bm);border-bottom-color:var(--bm);}
+.tab-panel{display:none;padding:1.8rem 2rem;}
+.tab-panel.active{display:block;}
+.ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;}
+.ov-section{background:var(--paper);border:1px solid var(--rule);border-radius:12px;padding:1.2rem 1.4rem;}
+.ov-section-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:1rem;padding-bottom:0.7rem;border-bottom:1px solid var(--rule);}
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--rule);}
+.info-row:last-child{border-bottom:none;}
+.info-label{font-size:13px;color:var(--muted);}
+.info-val{font-size:13px;font-weight:600;color:var(--ink);}
+.info-badge{font-size:12px;padding:3px 12px;border-radius:100px;background:var(--bl);color:var(--blue);font-weight:600;}
+.doc-list{display:flex;flex-direction:column;gap:10px;}
+.doc-row{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;background:var(--paper);border:1px solid var(--rule);text-decoration:none;transition:border-color 0.2s;}
+.doc-row:hover{border-color:var(--bm);background:var(--bl);}
+.doc-icon{width:38px;height:38px;border-radius:9px;background:var(--bl);border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.doc-icon svg{width:16px;height:16px;stroke:var(--bm);fill:none;stroke-width:2;}
+.doc-info{flex:1;}
+.doc-type-name{font-size:14px;font-weight:700;color:var(--ink);}
+.doc-date{font-size:12px;color:var(--muted);margin-top:2px;}
+.doc-status{font-size:12px;padding:3px 10px;border-radius:100px;font-weight:600;}
+.s-approved{background:#EAF3DE;color:#2E5E10;}
+.s-generated{background:var(--bl);color:var(--blue);}
+.s-extracted{background:#FEF3C7;color:#92400E;}
+.s-draft{background:var(--paper);color:var(--muted);border:1px solid var(--rule);}
+.s-failed{background:#FEF2F2;color:#B91C1C;}
+.doc-arrow{width:30px;height:30px;border-radius:8px;border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.doc-arrow svg{width:13px;height:13px;stroke:var(--muted);fill:none;stroke-width:2;}
+.meeting-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.meeting-chip{background:var(--paper);border:1px solid var(--rule);border-radius:12px;padding:1.1rem 1.3rem;}
+.mc-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px;}
+.mc-val{font-size:14px;font-weight:600;color:var(--ink);}
+.mc-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--bm);text-decoration:none;margin-top:6px;font-weight:500;}
+.mc-link svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;}
+.meeting-chip.full{grid-column:1/-1;}
+.empty-tab{text-align:center;padding:3rem 2rem;color:var(--muted);}
+.empty-tab svg{width:40px;height:40px;stroke:var(--rule);fill:none;stroke-width:1.5;margin-bottom:1rem;}
+.empty-tab p{font-size:14px;line-height:1.8;}
+</style>
+</head>
+<body>
+<div class="page">
+  <aside class="sidebar">
+    <div class="sb-logo"><img src="{% static 'img/logo.png' %}" alt="وثيق"/></div>
+    <nav class="nav-items">
+      <a href="{% url 'frontend:home' %}" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>الصفحة الرئيسية
+      </a>
+      <a href="{% url 'frontend:search' %}" class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>البحث
+      </a>
+      <a href="{% url 'frontend:projects' %}" class="nav-item active">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>المشاريع
+      </a>
+      <a href="{% url 'frontend:create_project' %}" class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>مشروع جديد
+      </a>
+    </nav>
+    <div class="sb-bottom">
+      <div class="user-row" onclick="toggleDropdown()">
+        <div class="avatar">
+          {% if request.user.gender == 'F' %}<img src="{% static 'img/avatar_female.png' %}" alt=""/>
+          {% elif request.user.gender == 'M' %}<img src="{% static 'img/avatar_male.png' %}" alt=""/>
+          {% else %}<div class="avatar-initials">{{ request.user.username|slice:":1"|upper }}</div>{% endif %}
+        </div>
+        <div class="user-info">
+          <div class="user-name">{{ request.user.username }}</div>
+          <div class="user-pos">{{ request.user.position|default:"مستخدم" }}</div>
+        </div>
+        <svg class="chevron-icon" id="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="dropdown" id="dropdown">
+        <a href="{% url 'frontend:profile' %}" class="dd-item">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>الملف الشخصي
+        </a>
+        <div class="dd-sep"></div>
+        <a href="{% url 'frontend:logout' %}" class="dd-item dd-logout">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>تسجيل الخروج
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <a href="{% url 'frontend:projects' %}" class="back-btn">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <div class="topbar-title">{{ project.name }}</div>
+    </div>
+    <div class="content">
+      <div class="proj-header">
+        <div>
+          <div class="proj-name">{{ project.name }}</div>
+          <div class="proj-meta">
+            <div class="proj-meta-item">
+              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              العميل: <strong>{{ project.client|default:"—" }}</strong>
+            </div>
+            <div class="proj-meta-item">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              المدير: <strong>{{ project.manager|default:"—" }}</strong>
+            </div>
+            <div class="proj-meta-item">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <strong>{{ project.created_at|date:"j F Y" }}</strong>
+            </div>
+          </div>
+        </div>
+        <div class="proj-badge">نشط</div>
+      </div>
+
+      <div class="tabs-card">
+        <div class="tabs-nav">
+          <button class="tab-btn active" onclick="switchTab('overview',this)">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            نظرة عامة
+          </button>
+          <button class="tab-btn" onclick="switchTab('documents',this)">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            المستندات
+          </button>
+          <button class="tab-btn" onclick="switchTab('meeting',this)">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            الاجتماع
+          </button>
+        </div>
+
+        <div class="tab-panel active" id="panel-overview">
+          <div class="ov-grid">
+            <div class="ov-section">
+              <div class="ov-section-title">معلومات المشروع</div>
+              <div class="info-row"><span class="info-label">اسم المشروع</span><span class="info-val">{{ project.name }}</span></div>
+              <div class="info-row"><span class="info-label">العميل</span><span class="info-val">{{ project.client|default:"—" }}</span></div>
+              <div class="info-row"><span class="info-label">المدير</span><span class="info-val">{{ project.manager|default:"—" }}</span></div>
+              <div class="info-row"><span class="info-label">المجال</span><span class="info-val">{{ project.domain|default:"—" }}</span></div>
+              <div class="info-row"><span class="info-label">نوع المشروع</span><span class="info-val">{{ project.project_type|default:"—" }}</span></div>
+              <div class="info-row"><span class="info-label">المستخدم المستهدف</span><span class="info-val">{{ project.target_user|default:"—" }}</span></div>
+            </div>
+            <div class="ov-section">
+              <div class="ov-section-title">إحصائيات</div>
+              <div class="info-row"><span class="info-label">تاريخ الإنشاء</span><span class="info-val">{{ project.created_at|date:"j F Y" }}</span></div>
+              <div class="info-row"><span class="info-label">المستندات</span><span class="info-badge">{{ project.documents.count }} مستند</span></div>
+              <div class="info-row"><span class="info-label">الحالة</span><span class="info-badge">نشط</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="panel-documents">
+          <div class="doc-list">
+            {% for doc in project.documents.all %}
+            <a href="{% url 'frontend:generated_document' doc.id %}" class="doc-row">
+              <div class="doc-icon">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div class="doc-info">
+                <div class="doc-type-name">{{ doc.doc_type }}</div>
+                <div class="doc-date">{{ doc.created_at|date:"j F Y" }}</div>
+              </div>
+              <span class="doc-status {% if doc.status == 'APPROVED' %}s-approved{% elif doc.status == 'GENERATED' %}s-generated{% elif doc.status == 'EXTRACTED' %}s-extracted{% elif doc.status == 'FAILED' %}s-failed{% else %}s-draft{% endif %}">
+                {% if doc.status == 'APPROVED' %}معتمد{% elif doc.status == 'GENERATED' %}مُوَلَّد{% elif doc.status == 'EXTRACTED' %}مُستخرج{% elif doc.status == 'FAILED' %}فشل{% else %}مسودة{% endif %}
+              </span>
+              <div class="doc-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+            </a>
+            {% empty %}
+            <div class="empty-tab">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <p>لا توجد مستندات بعد.</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="tab-panel" id="panel-meeting">
+          {% if project.meeting %}
+          <div class="meeting-grid">
+            <div class="meeting-chip">
+              <div class="mc-label">عنوان الاجتماع</div>
+              <div class="mc-val">{{ project.meeting.title }}</div>
+            </div>
+            <div class="meeting-chip">
+              <div class="mc-label">المنصة</div>
+              <div class="mc-val">{{ project.meeting.platform|default:"—" }}</div>
+            </div>
+            <div class="meeting-chip full">
+              <div class="mc-label">رابط الاجتماع</div>
+              <div class="mc-val">{{ project.meeting.meeting_link|default:"—" }}</div>
+              {% if project.meeting.meeting_link %}
+              <a href="{{ project.meeting.meeting_link }}" target="_blank" class="mc-link">
+                <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                فتح الرابط
+              </a>
+              {% endif %}
+            </div>
+          </div>
+          {% else %}
+          <div class="empty-tab">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <p>لا توجد بيانات اجتماع.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+}
+function toggleDropdown(){
+  document.getElementById('dropdown').classList.toggle('show');
+  document.getElementById('chevron').classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.sb-bottom')){
+    document.getElementById('dropdown').classList.remove('show');
+    document.getElementById('chevron').classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>

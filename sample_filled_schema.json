@@ -1,0 +1,35 @@
+{
+  "project_name": "WATHEEQ",
+  "business_goal": "Convert meeting transcripts into professional BRD documents automatically.",
+  "stakeholders": [
+    {"name": "Product Owner", "role": "Approves requirements"},
+    {"name": "Development Team", "role": "Implements features"}
+  ],
+  "scope": {
+    "in_scope": [
+      "Upload transcript",
+      "Extract schema fields",
+      "Generate BRD Word document"
+    ],
+    "out_of_scope": [
+      "UI final design",
+      "Production deployment"
+    ]
+  },
+  "requirements": {
+    "functional": [
+      "The system shall accept a filled JSON schema.",
+      "The system shall generate a BRD document in Word format."
+    ],
+    "non_functional": [
+      "The system should respond within a reasonable time.",
+      "The output should be readable and professional."
+    ]
+  },
+  "assumptions": [
+    "The schema is extracted correctly from the transcript."
+  ],
+  "risks": [
+    "Low-quality extracted fields may produce weak BRD text."
+  ]
+}

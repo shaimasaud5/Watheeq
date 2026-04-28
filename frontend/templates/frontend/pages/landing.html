@@ -1,0 +1,315 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>وثيق — AI-Powered Meeting Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --ink:#1A2E4A;--blue:#1A5FAA;--bm:#2D7DD2;--bl:#EAF3FF;--sky:#D6EAFF;
+  --w:#FFFFFF;--paper:#F6F9FF;--rule:#D8E8F8;--muted:#6B87A8;--dark:#0D1E33;
+  --display:'DM Serif Display',serif;--body:'Cairo',sans-serif;
+}
+body{font-family:var(--body);background:var(--w);color:var(--ink);}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 3rem;background:var(--w);border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:100;gap:2rem;}
+.logo-wrap{flex-shrink:0;margin-left:2rem;}
+.logo-wrap img{height:70px;width:auto;display:block;filter:invert(25%) sepia(50%) saturate(500%) hue-rotate(190deg) brightness(0.75);}
+.nav-mid{display:flex;gap:2.5rem;flex-shrink:0;}
+.nav-mid a{text-decoration:none;color:var(--muted);font-size:17px;font-weight:600;white-space:nowrap;transition:color 0.2s;}
+.nav-mid a:hover{color:var(--ink);}
+.nav-end{display:flex;gap:12px;align-items:center;flex-shrink:0;margin-right:auto;}
+.n-lang{background:transparent;border:1px solid var(--rule);color:var(--muted);padding:7px 15px;border-radius:100px;font-size:14px;font-family:var(--body);cursor:pointer;font-weight:500;}
+.n-login{background:transparent;border:1px solid var(--rule);color:var(--muted);padding:7px 16px;border-radius:100px;font-size:14px;font-family:var(--body);cursor:pointer;transition:all 0.2s;text-decoration:none;font-weight:500;}
+.n-login:hover{border-color:var(--bm);color:var(--bm);}
+.n-signup{background:var(--bm);color:#fff;border:none;padding:7px 18px;border-radius:100px;font-size:14px;font-family:var(--body);font-weight:600;cursor:pointer;transition:background 0.2s;text-decoration:none;}
+.n-signup:hover{background:var(--blue);}
+
+/* HERO */
+.hero{display:grid;grid-template-columns:5fr 3fr;min-height:560px;background:var(--dark);}
+.hero-text{padding:3.5rem 3rem;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;background:var(--w);}
+.hero-h1{font-family:var(--display);font-size:3.5rem;color:var(--ink);line-height:1.2;margin-bottom:1rem;letter-spacing:-0.5px;}
+.hero-h1 i{color:var(--bm);font-style:italic;}
+.hero-sub{font-size:17px;color:var(--muted);line-height:1.9;margin-bottom:2.5rem;max-width:100%;white-space:nowrap;}
+.hb1{background:var(--dark);color:#fff;border:none;padding:12px 28px;border-radius:100px;font-size:14px;font-weight:600;font-family:var(--body);cursor:pointer;width:fit-content;transition:background 0.2s;align-self:center;}
+.hb1:hover{background:var(--blue);}
+
+/* الجانب الأزرق — Pipeline */
+.hero-visual{background:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 2.5rem;position:relative;overflow:hidden;align-self:stretch;}
+.hv-ring{position:absolute;width:480px;height:480px;border-radius:50%;border:1px solid rgba(45,125,210,0.12);top:-160px;right:-140px;}
+.hv-ring2{position:absolute;width:280px;height:280px;border-radius:50%;border:1px solid rgba(45,125,210,0.08);bottom:-100px;left:-70px;}
+.pipeline-card-wrap{width:100%;max-width:340px;position:relative;z-index:2;}
+.mac-bar{display:flex;align-items:center;gap:7px;padding:10px 14px;background:rgba(255,255,255,0.04);border-radius:10px 10px 0 0;border:1px solid rgba(255,255,255,0.07);border-bottom:none;}
+.mac-dot{width:11px;height:11px;border-radius:50%;}
+.md-r{background:#FF5F57;}.md-y{background:#FEBC2E;}.md-g{background:#28C840;}
+/* تكبير خط Pipeline Status */
+.mac-title{font-size:13px;color:rgba(255,255,255,0.4);margin-right:auto;font-weight:500;}
+.vis-card{background:rgba(255,255,255,0.04);border:1px solid rgba(45,125,210,0.25);border-radius:0 0 10px 10px;padding:1.4rem;backdrop-filter:blur(4px);}
+.vc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;padding-bottom:0.9rem;border-bottom:1px solid rgba(255,255,255,0.06);}
+/* تكبير خط حالة المعالجة */
+.vc-title{font-size:13px;color:rgba(255,255,255,0.5);letter-spacing:1.5px;text-transform:uppercase;}
+.vc-live{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--sky);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--sky);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.stage-list{display:flex;flex-direction:column;gap:8px;}
+.stage{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.05);background:rgba(255,255,255,0.02);}
+.stage.done{border-color:rgba(45,125,210,0.3);background:rgba(45,125,210,0.08);}
+.stage.active{border-color:rgba(214,234,255,0.25);background:rgba(214,234,255,0.06);}
+.s-num{width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:rgba(255,255,255,0.2);}
+.stage.done .s-num{border-color:var(--bm);color:var(--bm);}
+.stage.active .s-num{border-color:var(--sky);color:var(--sky);}
+/* تكبير خط أسماء المراحل */
+.s-name{flex:1;font-size:14px;color:rgba(255,255,255,0.35);}
+.stage.done .s-name,.stage.active .s-name{color:rgba(255,255,255,0.9);}
+.s-bar{width:44px;height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;flex-shrink:0;}
+.sb{height:100%;border-radius:2px;}
+.sb-done{width:100%;background:var(--bm);}
+.sb-proc{width:55%;background:var(--sky);}
+.sb-wait{width:0;}
+
+/* NUMBERS */
+.numbers-wrap{background:var(--dark);padding:0;}
+.numbers-inner{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(255,255,255,0.08);}
+.num-item{padding:1.4rem 1.0rem;text-align:center;border-left:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);}
+.num-item:last-child{border-left:none;}
+.ni-n{font-family:var(--display);font-size:2.6rem;color:var(--sky);line-height:1;margin-bottom:0.5rem;}
+.ni-l{font-size:12px;color:rgba(255,255,255,0.55);}
+
+/* FEATURES */
+.features{padding:4rem 3.5rem 5rem;background:var(--paper);border-top:1px solid var(--rule);}
+.feat-inner{max-width:1100px;margin:0 auto;}
+.sec-lbl{font-family:var(--display);font-size:2.8rem;letter-spacing:-0.5px;color:var(--blue);font-weight:800;margin-bottom:1rem;line-height:1.15;}
+.sec-mid{font-size:1.3rem;font-weight:600;color:var(--ink);margin-bottom:0.4rem;}
+.sec-small{font-size:17px;color:var(--muted);margin-bottom:2.5rem;}
+.feat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.2rem;}
+.fc{background:var(--w);border:1px solid var(--rule);border-radius:14px;padding:1.8rem 2rem;display:grid;grid-template-columns:auto 1fr;gap:1.2rem;align-items:flex-start;transition:border-color 0.2s;}
+.fc:hover{border-color:var(--bm);}
+.fc-left{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.fc-num{font-family:var(--display);font-size:1.6rem;color:var(--rule);line-height:1;}
+.fc-icon{width:42px;height:42px;border-radius:10px;background:var(--bl);display:flex;align-items:center;justify-content:center;}
+.fc-icon svg{width:18px;height:18px;stroke:var(--bm);fill:none;stroke-width:2;}
+.fc-right h3{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:0.5rem;}
+.fc-right p{font-size:15px;color:var(--muted);line-height:1.75;}
+.fc-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:0.6rem;}
+.fc-tag{font-size:12px;background:var(--bl);color:var(--blue);padding:2px 8px;border-radius:100px;font-weight:600;}
+
+/* HOW */
+.how{padding:3rem 3.5rem 5rem;background:var(--w);border-top:1px solid var(--rule);}
+.how-inner{max-width:1100px;margin:0 auto;}
+.pipeline-wrap{margin-top:2.5rem;position:relative;}
+.pipeline-line{position:absolute;top:28px;right:28px;left:28px;height:2px;background:var(--rule);z-index:0;}
+.pipeline-fill{position:absolute;top:28px;right:28px;width:28%;height:2px;background:var(--bm);z-index:1;border-radius:2px;}
+.pipeline-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;position:relative;z-index:2;}
+.ps{display:flex;flex-direction:column;align-items:center;text-align:center;}
+.ps-circle{width:56px;height:56px;border-radius:50%;background:var(--w);border:2px solid var(--rule);display:flex;align-items:center;justify-content:center;margin-bottom:1rem;transition:all 0.2s;}
+.ps-circle svg{width:22px;height:22px;stroke:var(--muted);fill:none;stroke-width:1.8;}
+.ps.done .ps-circle{border-color:var(--bm);background:var(--bl);}
+.ps.done .ps-circle svg{stroke:var(--bm);}
+.ps.active .ps-circle{border-color:var(--bm);background:var(--bm);}
+.ps.active .ps-circle svg{stroke:#fff;}
+.ps-n{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:1px;margin-bottom:0.3rem;}
+.ps h4{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:0.3rem;}
+.ps p{font-size:14px;color:var(--muted);line-height:1.7;max-width:160px;}
+
+/* WHY */
+.why{padding:5rem 3.5rem;background:var(--dark);}
+.why-inner{max-width:1100px;margin:0 auto;}
+.why-title{font-family:var(--display);font-size:2.8rem;color:var(--w);margin-bottom:0.4rem;}
+.why-subtitle{font-size:1.2rem;color:rgba(214,234,255,0.6);margin-bottom:3rem;}
+.why-list{display:flex;flex-direction:column;gap:0;border:1px solid rgba(255,255,255,0.07);border-radius:14px;overflow:hidden;}
+.wi{display:grid;grid-template-columns:60px 1fr auto;align-items:center;gap:1.5rem;padding:1.4rem 2rem;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);transition:background 0.2s;}
+.wi:last-child{border-bottom:none;}
+.wi:hover{background:rgba(255,255,255,0.04);}
+.wi-num{font-family:var(--display);font-size:2rem;color:rgba(45,125,210,0.3);line-height:1;text-align:center;}
+.wi-body h3{font-size:18px;font-weight:700;color:var(--w);margin-bottom:0.3rem;}
+.wi-body p{font-size:15px;color:rgba(255,255,255,0.4);line-height:1.7;}
+.wi-tag{font-size:13px;background:rgba(45,125,210,0.15);color:var(--sky);padding:4px 12px;border-radius:100px;font-weight:600;white-space:nowrap;border:1px solid rgba(45,125,210,0.2);}
+
+/* CONTACT */
+.contact{padding:5rem 3.5rem;background:var(--paper);border-top:1px solid var(--rule);}
+.contact-inner{max-width:680px;margin:0 auto;text-align:center;}
+.contact-form{display:flex;flex-direction:column;gap:12px;text-align:right;margin-top:2rem;}
+.cf-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.cf-input{width:100%;padding:11px 16px;border:1px solid var(--rule);border-radius:8px;font-size:15px;font-family:var(--body);color:var(--ink);background:var(--w);outline:none;transition:border-color 0.2s;}
+.cf-input:focus{border-color:var(--bm);}
+.cf-textarea{width:100%;padding:11px 16px;border:1px solid var(--rule);border-radius:8px;font-size:15px;font-family:var(--body);color:var(--ink);background:var(--w);resize:vertical;min-height:110px;outline:none;transition:border-color 0.2s;}
+.cf-textarea:focus{border-color:var(--bm);}
+.cf-btn{background:var(--bm);color:#fff;border:none;padding:12px 32px;border-radius:100px;font-size:15px;font-weight:600;font-family:var(--body);cursor:pointer;align-self:center;margin-top:4px;transition:background 0.2s;}
+.cf-btn:hover{background:var(--blue);}
+
+/* FOOTER */
+footer{background:var(--dark);padding:2rem 3.5rem;border-top:1px solid rgba(255,255,255,0.06);}
+.footer-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;}
+.footer-logo img{height:70px;width:auto;filter:invert(80%) sepia(20%) saturate(200%) hue-rotate(190deg) brightness(1.2);}
+.footer-links{display:flex;gap:2.5rem;}
+.footer-links a{text-decoration:none;color:rgba(255,255,255,0.45);font-size:17px;font-weight:600;transition:color 0.2s;}
+.footer-links a:hover{color:rgba(255,255,255,0.9);}
+.footer-copy{font-size:13px;color:rgba(255,255,255,0.3);}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo-wrap">
+    <img src="{% static 'img/logo.png' %}" alt="وثيق"/>
+  </div>
+  <div class="nav-mid">
+    <a href="#features">المميزات</a>
+    <a href="#how">كيف يعمل</a>
+    <a href="#why">لماذا وثيق</a>
+    <a href="#contact">التواصل</a>
+  </div>
+  <div class="nav-end">
+    <a href="{% url 'frontend:login' %}" class="n-login">تسجيل الدخول</a>
+    <a href="{% url 'frontend:signup' %}" class="n-signup">إنشاء حساب</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-text">
+    <div class="hero-h1">حوّل اجتماعاتك إلى مستندات ذكية تلقائيًا<i> مع وثــيـق</i></div>
+    <p class="hero-sub">وثيق يلتقط كل ما يُقال في اجتماعاتك ويحوّله إلى محتوى واضح ومنظّم تلقائيًا وبدون جهد.</p>
+    <a href="{% url 'frontend:signup' %}" class="hb1" style="text-decoration:none;display:inline-block;text-align:center;">ابدأ مجاناً ←</a>
+  </div>
+  <div class="hero-visual">
+    <div class="hv-ring"></div><div class="hv-ring2"></div>
+    <div class="pipeline-card-wrap">
+      <div class="mac-bar">
+        <span class="mac-dot md-r"></span><span class="mac-dot md-y"></span><span class="mac-dot md-g"></span>
+        <span class="mac-title">Pipeline Status</span>
+      </div>
+      <div class="vis-card">
+        <div class="vc-head">
+          <span class="vc-title">حالة المعالجة</span>
+          <span class="vc-live"><span class="live-dot"></span> مباشر</span>
+        </div>
+        <div class="stage-list">
+          <div class="stage done"><div class="s-num">١</div><div class="s-name">Agent Joining</div><div class="s-bar"><div class="sb sb-done"></div></div></div>
+          <div class="stage done"><div class="s-num">٢</div><div class="s-name">Preprocessing</div><div class="s-bar"><div class="sb sb-done"></div></div></div>
+          <div class="stage active"><div class="s-num">٣</div><div class="s-name">Processing</div><div class="s-bar"><div class="sb sb-proc"></div></div></div>
+          <div class="stage"><div class="s-num">٤</div><div class="s-name">Extraction</div><div class="s-bar"><div class="sb sb-wait"></div></div></div>
+          <div class="stage"><div class="s-num">٥</div><div class="s-name">Generation</div><div class="s-bar"><div class="sb sb-wait"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NUMBERS -->
+<div class="numbers-wrap">
+  <div class="numbers-inner">
+    <div class="num-item"><div class="ni-n">٥</div><div class="ni-l">مراحل للمعالجة</div></div>
+    <div class="num-item"><div class="ni-n">AR + EN</div><div class="ni-l">يدعم العربية والإنجليزية</div></div>
+    <div class="num-item"><div class="ni-n">١٠٠٪</div><div class="ni-l">أتمتة كاملة</div></div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="feat-inner">
+    <div class="sec-lbl">المميزات</div>
+    <div class="sec-mid">كل ما يحتاجه اجتماعك</div>
+    <div class="sec-small">أدوات ذكية مصممة لتحويل كل نقاش إلى محتوى منظّم وقابل للاستخدام</div>
+    <div class="feat-grid">
+      <div class="fc">
+        <div class="fc-left"><div class="fc-num">01</div><div class="fc-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div></div>
+        <div class="fc-right"><h3>التقاط تلقائي بدون جهد</h3><p>Agent ينضم للاجتماع ويسجّل كل كلمة تلقائيًا بمجرد بدء الاجتماع.</p></div>
+      </div>
+      <div class="fc">
+        <div class="fc-left"><div class="fc-num">02</div><div class="fc-icon"><svg viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg></div></div>
+        <div class="fc-right"><h3>معالجة ذكية</h3><p>يدعم النقاشات التي تحتوي على العربية والإنجليزية في نفس الوقت، يحلّل المحتوى ويرتّبه بدقة دون فقدان السياق.</p><div class="fc-tags"><span class="fc-tag">AR</span><span class="fc-tag">EN</span><span class="fc-tag">Mixed</span></div></div>
+      </div>
+      <div class="fc">
+        <div class="fc-left"><div class="fc-num">03</div><div class="fc-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div></div>
+        <div class="fc-right"><h3>نتائج منظّمة</h3><p>يولّد مستندات احترافية جاهزة للاستخدام بصيغتين مختلفتين حسب الحاجة.</p><div class="fc-tags"><span class="fc-tag">BRD</span><span class="fc-tag">MOM</span></div></div>
+      </div>
+      <div class="fc">
+        <div class="fc-left"><div class="fc-num">04</div><div class="fc-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div></div>
+        <div class="fc-right"><h3>١٠٠٪ أتمتة كاملة</h3><p>من لحظة بدء الاجتماع حتى استلام التقرير، من غير أي تدخّل يدوي.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <div class="sec-lbl">كيف يعمل وثيق؟</div>
+    <div class="sec-small">أربع خطوات تحوّل اجتماعك إلى تقرير</div>
+    <div class="pipeline-wrap">
+      <div class="pipeline-line"></div>
+      <div class="pipeline-fill"></div>
+      <div class="pipeline-steps">
+        <div class="ps done">
+          <div class="ps-circle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+          <div class="ps-n">01</div><h4>ابدأ اجتماعك</h4><p>وثيق ينضم تلقائيًا للاجتماع ويبدأ بالتسجيل.</p>
+        </div>
+        <div class="ps active">
+          <div class="ps-circle"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+          <div class="ps-n">02</div><h4>تتم المعالجة</h4><p>تنظيف النص وتقسيمه وتحويله إلى الإنجليزية.</p>
+        </div>
+        <div class="ps">
+          <div class="ps-circle"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
+          <div class="ps-n">03</div><h4>الاستخراج</h4><p>استخراج المعلومات المهمة من النص.</p>
+        </div>
+        <div class="ps">
+          <div class="ps-circle"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <div class="ps-n">04</div><h4>التوليد</h4><p>توليد التقرير النهائي جاهزًا للاستخدام.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="why" id="why">
+  <div class="why-inner">
+    <div class="why-title">لماذا وثيق؟</div>
+    <div class="why-subtitle">لأن وقتك غالي</div>
+    <div class="why-list">
+      <div class="wi"><div class="wi-num">01</div><div class="wi-body"><h3>توفير الوقت والجهد</h3><p>لا حاجة لكتابة الملاحظات يدويًا — وثيق يتولى كل شيء تلقائيًا.</p></div><span class="wi-tag">Auto</span></div>
+      <div class="wi"><div class="wi-num">02</div><div class="wi-body"><h3>دعم اللغتين</h3><p>العربية والإنجليزية في نفس الوقت — بدون فقدان أي معلومة أو سياق.</p></div><span class="wi-tag">AR + EN</span></div>
+      <div class="wi"><div class="wi-num">03</div><div class="wi-body"><h3>نظام متكامل</h3><p>يقدّم وثيق حلاً متكاملاً يبدأ من الاجتماع وينتهي بتوليد مستندات جاهزة بدون أي تدخّل يدوي.</p></div><span class="wi-tag">End-to-End</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="contact-inner">
+    <div class="sec-lbl" style="text-align:center;">التواصل</div>
+    <div class="sec-small" style="text-align:center;">لأي استفسار أو ملاحظة، نحن هنا</div>
+    <div class="contact-form">
+      <div class="cf-row">
+        <input class="cf-input" type="text" placeholder="الاسم"/>
+        <input class="cf-input" type="email" placeholder="البريد الإلكتروني"/>
+      </div>
+      <input class="cf-input" type="text" placeholder="الموضوع"/>
+      <textarea class="cf-textarea" placeholder="رسالتك..."></textarea>
+      <button class="cf-btn">إرسال ←</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo"><img src="{% static 'img/logo.png' %}" alt="وثيق"/></div>
+    <div class="footer-links">
+      <a href="#features">المميزات</a>
+      <a href="#how">كيف يعمل</a>
+      <a href="#why">لماذا وثيق</a>
+      <a href="#contact">التواصل</a>
+    </div>
+    <div class="footer-copy">© 2026 Watheeq. جميع الحقوق محفوظة.</div>
+  </div>
+</footer>
+
+</body>
+</html>

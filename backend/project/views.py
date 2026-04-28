@@ -11,25 +11,26 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import CreateProjectSerializer
 from django.shortcuts import get_object_or_404
-#from .serializers import AddDocumentSerializer
+
 
 @csrf_exempt
-#@login_required
 def create_project_meeting_brd(request):
+    
     if request.method != "POST":
         return JsonResponse({"error": "POST only"}, status=405)
-        
 
     data = json.loads(request.body.decode("utf-8"))
 
-    # مؤقتًا: نخلي النوع BRD فقط
-    doc_type = data.get("document_type", "BRD")
-    if doc_type != "BRD":
-        return JsonResponse({"error": "Only BRD is supported for now."}, status=400)
+    doc_type = data.get("document_type", "BRD").upper()
+    supported_types = ["BRD", "MOM"]
+    if doc_type not in supported_types:
+        return JsonResponse(
+            {"error": f"Supported document types: {', '.join(supported_types)}"},
+            status=400
+        )
 
     with transaction.atomic():
         project = Project.objects.create(
-            #owner=request.user,
             name=data.get("project_name", "").strip()
         )
 
@@ -40,38 +41,33 @@ def create_project_meeting_brd(request):
 
         document = Document.objects.create(
             project=project,
-            doc_type="BRD",
+            doc_type=doc_type,
             content=""
         )
 
     return JsonResponse({
-        "project_id": project.id,
-        "meeting_id": meeting.id,
+        "project_id":  project.id,
+        "meeting_id":  meeting.id,
         "document_id": document.id,
-        "doc_type": document.doc_type
+        "doc_type":    document.doc_type,
     }, status=201)
 
 
-
-
 class CreateProjectAPI(APIView):
+    """
+    POST /api/project/create/
+
+    Creates a Project, Meeting, Document, and Transcript in one atomic operation.
+    Returns document_id which must be passed to task 3 (extract task) so it can
+    call POST /api/generation/documents/{document_id}/set-schema/ when done.
+
+    Supported document_type values: BRD, MOM
+    """
     def post(self, request):
-        serializer = CreateProjectSerializer(data=request.data, context={"request": request})
-        serializer.is_valid(raise_exception=True)
-        result = serializer.save()
-        return Response(result, status=201)
-    
-
-
-"""class AddDocumentAPI(APIView):
-    def post(self, request, project_id):
-        project = get_object_or_404(Project, id=project_id, owner=request.user)
-
-        serializer = AddDocumentSerializer(
+        serializer = CreateProjectSerializer(
             data=request.data,
-            context={"project": project}
+            context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
         result = serializer.save()
-
-        return Response(result, status=201)"""
+        return Response(result, status=201)

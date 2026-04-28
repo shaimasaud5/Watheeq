@@ -11,10 +11,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -39,11 +42,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'XX',
     'rest_framework',
-    'backend.project',
-    'backend.transcript',
-    'backend.code_switch',
-    'backend.extract',
-    'backend.generation',
+    'accounts',
+    'project',
+    'transcript',
+    'code_switch',
+    'extract',
+    'generation',
+    'frontend',
+    
+
 ]
 
 MIDDLEWARE = [
@@ -61,13 +68,14 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'frontend' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                
             ],
         },
     },
@@ -79,7 +87,6 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-import os
 
 DATABASES = {
     'default': {
@@ -133,7 +140,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
+#STATICFILES_DIRS = [BASE_DIR / 'frontend' / 'static']
+AUTH_USER_MODEL = 'accounts.User'
 
 
 
