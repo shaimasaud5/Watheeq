@@ -1,0 +1,132 @@
+{
+  "type": "object",
+  "properties": {
+
+    "meeting_details": {
+      "type": "object",
+      "properties": {
+        "project_name": { "type": "string" },
+        "meeting_title": { "type": "string" },
+        "date": { "type": "string" },
+        "start_time": { "type": "string" },
+        "end_time": { "type": "string" },
+        "location_or_platform": { "type": "string" }
+      }
+    },
+
+    "attendees": {
+      "type": "object",
+      "properties": {
+        "participants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "role": { "type": "string" }
+            }
+          }
+        },
+        "absentees": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "role": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "agenda_and_objectives": {
+      "type": "object",
+      "properties": {
+        "agenda": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "meeting_objectives": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+
+    "discussion_points": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "topic": { "type": "string" },
+          "summary": { "type": "string" },
+          "key_points": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "action_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "task": { "type": "string" },
+          "assigned_to": { "type": "string" },
+          "deadline": { "type": "string" },
+          "priority": { "type": "string" },
+          "status": { "type": "string" }
+        }
+      }
+    },
+
+    "key_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "decision": { "type": "string" },
+          "impact": { "type": "string" }
+        }
+      }
+    },
+
+    "follow_up_items": {
+      "type": "object",
+      "properties": {
+        "next_steps": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "future_meeting": {
+          "type": "object",
+          "properties": {
+            "required": { "type": "boolean" },
+            "proposed_date": { "type": "string" },
+            "purpose": { "type": "string" }
+          }
+        }
+      }
+    },
+
+    "additional_notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+
+    "supporting_documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "document_name": { "type": "string" },
+          "reference": { "type": "string" }
+        }
+      }
+    }
+
+  }
+}

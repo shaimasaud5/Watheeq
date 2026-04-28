@@ -1,0 +1,159 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BRD Extract Schema",
+  "type": "object",
+  "required": [
+    "document_control",
+    "executive_summary",
+    "business_drivers",
+    "project_scope",
+    "current_process",
+    "risk_analysis",
+    "functional_requirements",
+    "non_functional_requirements"
+  ],
+  "properties": {
+    "document_control": {
+      "type": "object",
+      "required": ["version_history", "authors", "approval"],
+      "properties": {
+        "version_history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["version", "date", "description", "author"],
+            "properties": {
+              "version": { "type": "string" },
+              "date": { "type": "string" },
+              "description": { "type": "string" },
+              "author": { "type": "string" }
+            }
+          }
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "role"],
+            "properties": {
+              "name": { "type": "string" },
+              "role": { "type": "string" }
+            }
+          }
+        },
+        "approval": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "role", "status", "date"],
+            "properties": {
+              "name": { "type": "string" },
+              "role": { "type": "string" },
+              "status": { "type": "string", "enum": ["approved", "rejected", "pending"] },
+              "date": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "executive_summary": {
+      "type": "object",
+      "required": ["company_description", "problem", "proposed_solution", "expected_benefits"],
+      "properties": {
+        "company_description": { "type": "string" },
+        "problem": { "type": "string" },
+        "proposed_solution": { "type": "string" },
+        "expected_benefits": { "type": "string" }
+      }
+    },
+
+    "business_drivers": {
+      "type": "object",
+      "required": ["need_for_change", "goals", "kpis"],
+      "properties": {
+        "need_for_change": { "type": "string" },
+        "goals": { "type": "array", "items": { "type": "string" } },
+        "kpis": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "project_scope": {
+      "type": "object",
+      "required": ["in_scope", "out_of_scope", "assumptions", "constraints"],
+      "properties": {
+        "in_scope": { "type": "array", "items": { "type": "string" } },
+        "out_of_scope": { "type": "array", "items": { "type": "string" } },
+        "assumptions": { "type": "array", "items": { "type": "string" } },
+        "constraints": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "current_process": {
+      "type": "object",
+      "required": ["overview", "pain_points"],
+      "properties": {
+        "overview": { "type": "string" }
+      }
+    },
+
+    "risk_analysis": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["risk", "impact", "likelihood", "mitigation"],
+        "properties": {
+          "risk": { "type": "string" },
+          "impact": { "type": "string", "enum": ["low", "medium", "high"] },
+          "likelihood": { "type": "string", "enum": ["low", "medium", "high"] },
+          "mitigation": { "type": "string" }
+        }
+      }
+    },
+
+    "functional_requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "requirement", "description", "priority"],
+        "properties": {
+          "id": { "type": "string" },
+          "requirement": { "type": "string" },
+          "description": { "type": "string" },
+          "priority": { "type": "string", "enum": ["must", "should", "could"] }
+        }
+      }
+    },
+
+    "non_functional_requirements": {
+      "type": "object",
+      "required": ["performance", "security", "usability"],
+      "properties": {
+        "performance": { "type": "array", "items": { "type": "string" } },
+        "security": { "type": "array", "items": { "type": "string" } },
+        "usability": { "type": "array", "items": { "type": "string" } }
+      }
+         },
+      "stakeholders": {
+      "type": "array",
+      "items": {
+         "type": "object",
+         "required": ["name", "role", "responsibility"],
+         "properties": {
+            "name": { "type": "string" },
+            "role": { "type": "string" },
+            "responsibility": { "type": "string" }
+         }
+      }
+      },
+
+      "references": {
+      "type": "array",
+      "items": {
+         "type": "string"
+      }
+      }
+
+      
+  }
+}

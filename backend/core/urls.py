@@ -25,6 +25,7 @@ urlpatterns = [
     path('api/', include('XX.urls')),
     path("api/", include("project.urls")),
     path('api/generation/', include('generation.urls')),
+    path('api/', include('extract.urls')),
         
 
 
