@@ -25,11 +25,24 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - ./frontend:/app/frontend
     depends_on:
       - db
       - ollama
     env_file:
       - .env
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    command: http backend:8000
+    env_file:
+      - .env
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    ports:
+      - "4040:4040"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

@@ -1,73 +1,73 @@
 from rest_framework import serializers
 from django.db import transaction
 from .models import Project, Meeting, Document
-from transcript.models import Transcript
 
 
 class CreateProjectSerializer(serializers.Serializer):
+    """
+    Validates incoming data from the New Project & Meeting Setup form,
+    then creates Project, Meeting, and Document records in the database.
+    """
+
+    # ─── Project Information ───────────────────────────────────────
+    # Required fields
     project_name = serializers.CharField(max_length=200)
+    client       = serializers.CharField(max_length=200)
+    manager      = serializers.CharField(max_length=200)
+
+    # Optional fields
+    domain       = serializers.CharField(max_length=200, required=False, default="")
+    project_type = serializers.CharField(max_length=200, required=False, default="")
+    target_user  = serializers.CharField(max_length=200, required=False, default="")
+
+    # Only BRD and MOM are supported
+    document_type = serializers.ChoiceField(choices=["BRD", "MOM"])
+
+    #Optional template file (PDF or DOCX),
+    template_file = serializers.FileField(required=False, allow_null=True)
+
+    # ─── Meeting Setup ─────────────────────────────────────────────
     meeting_title = serializers.CharField(max_length=200)
-    document_type = serializers.ChoiceField(choices=["BRD", "SRS", "MOM"])
-    transcript_raw = serializers.CharField()
+    platform      = serializers.ChoiceField(choices=["zoom", "teams", "google_meet"])
+    meeting_link  = serializers.URLField()
 
     @transaction.atomic
     def create(self, validated_data):
+        """
+        Creates Project, Meeting, and Document in a single atomic transaction.
+        If any step fails, all changes are rolled back.
+        """
         request = self.context["request"]
 
-        # الآن: نركز على BRD فقط
-        if validated_data["document_type"] != "BRD":
-            raise serializers.ValidationError({"document_type": "Only BRD is supported for now."})
-
+        # 1. Create the project with all provided information
         project = Project.objects.create(
-            owner=request.user,
-            name=validated_data["project_name"],
-        )
+        owner=request.user if request.user.is_authenticated else None,
+        name=validated_data["project_name"],
+        client=validated_data["client"],
+        manager=validated_data["manager"],
+        domain=validated_data.get("domain", ""),
+        project_type=validated_data.get("project_type", ""),
+        target_user=validated_data.get("target_user", ""),
+)
 
+        # 2. Create the meeting linked to this project
         meeting = Meeting.objects.create(
-            project=project,
-            title=validated_data["meeting_title"],
+            project      = project,
+            title        = validated_data["meeting_title"],
+            platform     = validated_data["platform"],
+            meeting_link = validated_data["meeting_link"],
         )
 
+        # 3. Create an empty document — content will be filled later by the generation pipeline
         document = Document.objects.create(
-            project=project,
-            doc_type="BRD",
-            content="",
-        )
-        Transcript.objects.create(
-        meeting=meeting,
-        raw_text=validated_data["transcript_raw"],
-        processed_text=validated_data["transcript_raw"],  # مؤقت
+            project  = project,
+            doc_type = validated_data["document_type"],
+            template_file = validated_data.get("template_file", None),
         )
 
         return {
-            "project_id": project.id,
-            "meeting_id": meeting.id,
+            "project_id" : project.id,
+            "meeting_id" : meeting.id,
             "document_id": document.id,
-            "doc_type": document.doc_type,
+            "doc_type"   : document.doc_type,
         }
-"""from rest_framework import serializers
-from .models import Project, Document
-
-class AddDocumentSerializer(serializers.Serializer):
-    document_type = serializers.ChoiceField(choices=["BRD", "SRS", "MOM"])
-
-    def validate(self, attrs):
-        project = self.context["project"]
-        doc_type = attrs["document_type"]
-
-        # ما نسمح بتكرار نفس النوع
-        if Document.objects.filter(project=project, doc_type=doc_type).exists():
-            raise serializers.ValidationError({"document_type": "This document type already exists for this project."})
-
-        return attrs
-
-    def create(self, validated_data):
-        project = self.context["project"]
-        doc_type = validated_data["document_type"]
-
-        doc = Document.objects.create(
-            project=project,
-            doc_type=doc_type,
-            content=""
-        )
-        return {"document_id": doc.id, "doc_type": doc.doc_type}"""

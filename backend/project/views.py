@@ -1,77 +1,45 @@
-from django.shortcuts import render
-
-import json
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.db import transaction
-from django.contrib.auth.decorators import login_required
-
-from .models import Project, Meeting, Document
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
+
 from .serializers import CreateProjectSerializer
-from django.shortcuts import get_object_or_404
-#from .serializers import AddDocumentSerializer
-
-@csrf_exempt
-#@login_required
-def create_project_meeting_brd(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "POST only"}, status=405)
-        
-
-    data = json.loads(request.body.decode("utf-8"))
-
-    # مؤقتًا: نخلي النوع BRD فقط
-    doc_type = data.get("document_type", "BRD")
-    if doc_type != "BRD":
-        return JsonResponse({"error": "Only BRD is supported for now."}, status=400)
-
-    with transaction.atomic():
-        project = Project.objects.create(
-            #owner=request.user,
-            name=data.get("project_name", "").strip()
-        )
-
-        meeting = Meeting.objects.create(
-            project=project,
-            title=data.get("meeting_title", "").strip(),
-        )
-
-        document = Document.objects.create(
-            project=project,
-            doc_type="BRD",
-            content=""
-        )
-
-    return JsonResponse({
-        "project_id": project.id,
-        "meeting_id": meeting.id,
-        "document_id": document.id,
-        "doc_type": document.doc_type
-    }, status=201)
-
-
+from .services import request_recall_bot
 
 
 class CreateProjectAPI(APIView):
+    """
+    Handles the New Project & Meeting Setup form submission.
+    When the user clicks 'Generate Document', this view:
+    1. Validates and saves Project, Meeting, and Document in the database
+    2. Sends the meeting link to Recall.ai so the bot joins the meeting
+    """
+
+    # Temporarily disabled for testing — re-enable after frontend is ready
+    permission_classes = [AllowAny]
+
     def post(self, request):
-        serializer = CreateProjectSerializer(data=request.data, context={"request": request})
-        serializer.is_valid(raise_exception=True)
-        result = serializer.save()
-        return Response(result, status=201)
-    
+        """
+        POST /api/projects/create/
+        Expects: project info + meeting setup fields from the form
+        Returns: project_id, meeting_id, document_id, doc_type
+        """
 
-
-"""class AddDocumentAPI(APIView):
-    def post(self, request, project_id):
-        project = get_object_or_404(Project, id=project_id, owner=request.user)
-
-        serializer = AddDocumentSerializer(
+        # 1. Pass incoming data to the serializer for validation
+        #    If validation fails, an error response is returned automatically
+        serializer = CreateProjectSerializer(
             data=request.data,
-            context={"project": project}
+            context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
+
+        # 2. Save validated data → creates Project, Meeting, Document in DB
         result = serializer.save()
 
-        return Response(result, status=201)"""
+        # 3. Send the meeting link to Recall.ai so the bot joins the meeting
+        #    The bot will listen silently and return the transcript when done
+        request_recall_bot(
+            meeting_id=result["meeting_id"],
+        )
+
+        # 4. Return the created IDs to the frontend
+        return Response(result, status=201)

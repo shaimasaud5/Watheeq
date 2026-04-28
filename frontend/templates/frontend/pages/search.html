@@ -1,0 +1,225 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>البحث — وثيق</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --ink:#1A2E4A;--blue:#1A5FAA;--bm:#2D7DD2;--bl:#EAF3FF;--sky:#D6EAFF;
+  --w:#FFFFFF;--paper:#F0F5FB;--rule:#C8DCF0;--muted:#5B7FA6;--dark:#0D1E33;--mid:#1A3050;
+  --display:'DM Serif Display',serif;--body:'Cairo',sans-serif;
+}
+body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height:100vh;margin:0;}
+.page{display:flex;min-height:100vh;}
+.sidebar{background:var(--dark);display:flex;flex-direction:column;width:260px;min-width:260px;flex-shrink:0;min-height:100vh;}
+.sb-logo{padding:1.6rem 1.8rem 1.4rem;border-bottom:1px solid rgba(255,255,255,0.07);}
+.sb-logo img{height:70px;width:auto;filter:invert(80%) sepia(20%) saturate(200%) hue-rotate(190deg) brightness(1.2);}
+.nav-items{flex:1;display:flex;flex-direction:column;gap:3px;padding:1.2rem 1rem;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;font-size:15px;color:rgba(255,255,255,0.45);cursor:pointer;text-decoration:none;transition:all 0.15s;}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.85);}
+.nav-item.active{background:rgba(45,125,210,0.2);color:var(--sky);border:1px solid rgba(45,125,210,0.3);}
+.nav-item svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0;}
+.sb-bottom{border-top:1px solid rgba(255,255,255,0.07);padding:1rem;position:relative;}
+.user-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;cursor:pointer;}
+.user-row:hover{background:rgba(255,255,255,0.05);}
+.avatar{width:42px;height:42px;border-radius:50%;border:2px solid rgba(45,125,210,0.5);overflow:hidden;flex-shrink:0;background:var(--mid);display:flex;align-items:center;justify-content:center;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.avatar-initials{font-size:15px;font-weight:700;color:var(--sky);}
+.user-info{flex:1;}
+.user-name{font-size:15px;font-weight:700;color:rgba(255,255,255,0.9);}
+.user-pos{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.chevron-icon{width:15px;height:15px;stroke:rgba(255,255,255,0.3);fill:none;stroke-width:2;transition:transform 0.2s;}
+.chevron-icon.open{transform:rotate(180deg);}
+.dropdown{position:absolute;bottom:80px;right:8px;left:8px;background:var(--mid);border:1px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;display:none;z-index:100;}
+.dropdown.show{display:block;}
+.dd-item{display:flex;align-items:center;gap:10px;padding:12px 16px;font-size:14px;color:rgba(255,255,255,0.6);cursor:pointer;text-decoration:none;}
+.dd-item:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.9);}
+.dd-item svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;}
+.dd-sep{height:1px;background:rgba(255,255,255,0.07);}
+.dd-logout{color:rgba(239,68,68,0.8)!important;}
+.main{flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--w);border-bottom:1px solid var(--rule);padding:1.1rem 2rem;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:40;}
+.topbar-title{font-size:17px;font-weight:700;color:var(--ink);}
+.back-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:1px solid var(--rule);cursor:pointer;text-decoration:none;transition:border-color 0.2s;}
+.back-btn:hover{border-color:var(--bm);}
+.back-btn svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;}
+.content{padding:2rem;display:flex;flex-direction:column;gap:1.5rem;flex:1;}
+
+/* SEARCH BAR */
+.search-wrap{display:flex;gap:12px;}
+.search-input-wrap{flex:1;position:relative;}
+.search-input-wrap svg{position:absolute;right:16px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:1.8;}
+.search-input{width:100%;height:48px;border:1.5px solid var(--rule);border-radius:100px;padding:0 48px 0 16px;font-size:15px;font-family:var(--body);color:var(--ink);background:var(--w);outline:none;transition:border-color 0.2s;}
+.search-input:focus{border-color:var(--bm);box-shadow:0 0 0 3px rgba(45,125,210,0.1);}
+.search-btn{height:48px;padding:0 24px;background:var(--bm);color:#fff;border:none;border-radius:100px;font-size:15px;font-family:var(--body);font-weight:600;cursor:pointer;transition:background 0.2s;}
+.search-btn:hover{background:var(--blue);}
+
+/* RESULTS */
+.results-section{display:flex;flex-direction:column;gap:0.8rem;}
+.section-label{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:0.05em;margin-bottom:0.4rem;}
+.result-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;background:var(--w);border:1px solid var(--rule);text-decoration:none;transition:border-color 0.2s;}
+.result-item:hover{border-color:var(--bm);background:var(--bl);}
+.result-icon{width:38px;height:38px;border-radius:9px;background:var(--bl);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--rule);}
+.result-icon svg{width:16px;height:16px;stroke:var(--bm);fill:none;stroke-width:2;}
+.result-name{font-size:14px;font-weight:600;color:var(--ink);}
+.result-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+.result-badge{font-size:11px;padding:3px 10px;border-radius:100px;font-weight:600;margin-right:auto;}
+.badge-project{background:var(--bl);color:var(--blue);}
+.badge-doc{background:#EAF3DE;color:#2E5E10;}
+
+.empty-search{text-align:center;padding:4rem 2rem;color:var(--muted);}
+.empty-search svg{width:48px;height:48px;stroke:var(--rule);fill:none;stroke-width:1.5;margin-bottom:1rem;}
+.empty-search p{font-size:15px;}
+.no-query{text-align:center;padding:4rem 2rem;color:var(--muted);font-size:15px;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo"><img src="{% static 'img/logo.png' %}" alt="وثيق"/></div>
+    <nav class="nav-items">
+      <a href="{% url 'frontend:home' %}" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        الصفحة الرئيسية
+      </a>
+      <a href="{% url 'frontend:search' %}" class="nav-item active">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        البحث
+      </a>
+      <a href="{% url 'frontend:projects' %}" class="nav-item">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        المشاريع
+      </a>
+      <a href="{% url 'frontend:create_project' %}" class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        مشروع جديد
+      </a>
+      <a href="#" class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        المساعدة
+      </a>
+    </nav>
+    <div class="sb-bottom">
+      <div class="user-row" onclick="toggleDropdown()">
+        <div class="avatar">
+          {% if request.user.gender == 'F' %}
+            <img src="{% static 'img/avatar_female.png' %}" alt=""/>
+          {% elif request.user.gender == 'M' %}
+            <img src="{% static 'img/avatar_male.png' %}" alt=""/>
+          {% else %}
+            <div class="avatar-initials">{{ request.user.username|slice:":1"|upper }}</div>
+          {% endif %}
+        </div>
+        <div class="user-info">
+          <div class="user-name">{{ request.user.username }}</div>
+          <div class="user-pos">{{ request.user.position|default:"مستخدم" }}</div>
+        </div>
+        <svg class="chevron-icon" id="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="dropdown" id="dropdown">
+        <a href="{% url 'frontend:profile' %}" class="dd-item">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          الملف الشخصي
+        </a>
+        <div class="dd-sep"></div>
+        <a href="{% url 'frontend:logout' %}" class="dd-item dd-logout">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          تسجيل الخروج
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <a href="{% url 'frontend:home' %}" class="back-btn">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <div class="topbar-title">البحث</div>
+    </div>
+    <div class="content">
+
+      <!-- SEARCH BAR -->
+      <form method="get" action="{% url 'frontend:search' %}">
+        <div class="search-wrap">
+          <div class="search-input-wrap">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input class="search-input" type="text" name="q" value="{{ query }}" placeholder="ابحث عن مشروع أو مستند..." autofocus/>
+          </div>
+          <button class="search-btn" type="submit">بحث</button>
+        </div>
+      </form>
+
+      <!-- RESULTS -->
+      {% if query %}
+        {% if project_results or document_results %}
+
+          {% if project_results %}
+          <div class="results-section">
+            <div class="section-label">المشاريع</div>
+            {% for project in project_results %}
+            <a href="#" class="result-item">
+              <div class="result-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+              <div>
+                <div class="result-name">{{ project.name }}</div>
+                <div class="result-meta">{{ project.client }} · {{ project.created_at|date:"j M Y" }}</div>
+              </div>
+              <span class="result-badge badge-project">مشروع</span>
+            </a>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {% if document_results %}
+          <div class="results-section">
+            <div class="section-label">المستندات</div>
+            {% for doc in document_results %}
+            <a href="#" class="result-item">
+              <div class="result-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <div>
+                <div class="result-name">{{ doc.doc_type }} — {{ doc.project.name }}</div>
+                <div class="result-meta">{{ doc.created_at|date:"j M Y" }}</div>
+              </div>
+              <span class="result-badge badge-doc">{{ doc.doc_type }}</span>
+            </a>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+        {% else %}
+          <div class="empty-search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <p>ما في نتائج لـ "{{ query }}"</p>
+          </div>
+        {% endif %}
+      {% else %}
+        <div class="no-query">اكتبي ما تبحثين عنه في الأعلى 🔍</div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+<script>
+function toggleDropdown(){
+  const d=document.getElementById('dropdown');
+  const c=document.getElementById('chevron');
+  d.classList.toggle('show');
+  c.classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.sb-bottom')){
+    document.getElementById('dropdown').classList.remove('show');
+    document.getElementById('chevron').classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>
