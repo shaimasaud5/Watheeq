@@ -21,7 +21,7 @@ class Extraction(models.Model):
         related_name="extraction",
     )
 
-    # مرجع لأي chunk من مهمة 2
+    # مرجع لأي chunk - من مهمة 2
     # عبره نعرف الترانسكريبت وبالتالي جميع الـ chunks
     chunk = models.ForeignKey(
         TranscriptChunk,

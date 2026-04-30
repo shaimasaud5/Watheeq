@@ -31,3 +31,6 @@ class TranscriptChunk(models.Model):
 
     def __str__(self):
         return f"Transcript {self.transcript_id} - Chunk {self.chunk_index} [{self.status}]"
+    
+# 
+    

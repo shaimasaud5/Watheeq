@@ -13,3 +13,4 @@ def trigger_processing_pipeline(sender, instance, created, **kwargs):
     if created:
         print(f"[ SIGNAL ] New transcript detected, starting pipeline...")
         run_processing_pipeline(instance)
+        
