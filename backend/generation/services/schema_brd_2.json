@@ -1,0 +1,109 @@
+{
+  "appendix": [
+    "Appendix A: Current system screenshots",
+    "Appendix B: Student survey results summary"
+  ],
+  "glossary": [
+    {"term": "LMS", "definition": "Learning Management System for course content delivery"},
+    {"term": "GPA", "definition": "Grade Point Average calculated per semester"}
+  ],
+  "references": [
+    "University IT Strategic Plan 2024-2027",
+    "Competitor Analysis: Student Portal Benchmarking Report"
+  ],
+  "stakeholders": [
+    {"name": "Prof. Nasser Al-Ghamdi", "role": "Dean of Student Affairs", "responsibility": null},
+    {"name": "Lina Saleh", "role": "IT Director", "responsibility": "Technical lead and infrastructure oversight"},
+    {"name": "Tariq Mohammed", "role": "Business Analyst", "responsibility": null},
+    {"name": "Student Council Representative", "role": "End User", "responsibility": null}
+  ],
+  "project_scope": {
+    "in_scope": [
+      "Course registration and withdrawal module",
+      "Grade viewing and transcript requests",
+      "Fee payment integration with university finance system",
+      "Student document upload and verification"
+    ],
+    "assumptions": [
+      "Students have access to internet-connected devices",
+      "Integration APIs with existing ERP are available and documented"
+    ],
+    "constraints": [
+      "Must integrate with existing Banner ERP system",
+      "Go-live deadline fixed at start of Fall 2026 semester"
+    ],
+    "out_of_scope": [
+      "Faculty portal features",
+      "Alumni management module"
+    ]
+  },
+  "risk_analysis": [
+    {"risk": "ERP integration failure during peak registration period", "impact": "High", "likelihood": "Medium", "mitigation": "Conduct integration testing at least 2 months before go-live"},
+    {"risk": "Low student adoption of new portal", "impact": "Medium", "likelihood": "Medium", "mitigation": "Run awareness campaigns and provide tutorial videos"},
+    {"risk": "Data privacy breach of student academic records", "impact": "High", "likelihood": "Low", "mitigation": "Penetration testing and third-party security audit before launch"}
+  ],
+  "current_process": {
+    "overview": "Students visit physical offices for most administrative tasks including registration, transcript requests and fee payments",
+    "pain_points": [
+      "Long queues during registration periods",
+      "No single platform for all student services",
+      "Manual document submission prone to loss",
+      "Limited office hours restricting student access"
+    ]
+  },
+  "business_drivers": {
+    "kpis": [
+      "Reduce in-person visits by 70% within first semester",
+      "Achieve 80% student portal adoption rate",
+      "Process 90% of transcript requests within 48 hours"
+    ],
+    "goals": [
+      "Provide 24/7 self-service access for all student administrative needs",
+      "Reduce administrative staff workload",
+      "Improve student satisfaction scores in annual survey"
+    ],
+    "need_for_change": "Student expectations for digital services have grown significantly while university processes remain manual and office-dependent"
+  },
+  "document_control": {
+    "authors": ["Lina Saleh", "Tariq Mohammed"],
+    "approval": [
+      {"name": "Prof. Nasser Al-Ghamdi", "role": "Dean", "status": "approved", "date": "2026-03-10"}
+    ],
+    "version_history": [
+      {"date": "2026-01-15", "changes": "Initial draft version 1.0"},
+      {"date": "2026-02-01", "changes": "Version 1.1 - added payment integration requirements"},
+      {"date": "2026-03-08", "changes": "Version 2.0 - final after dean review"}
+    ]
+  },
+  "executive_summary": {
+    "problem": "Students lack a unified digital platform for academic and administrative self-service leading to high operational costs and poor student experience",
+    "expected_benefits": [
+      "Reduced administrative burden on university staff",
+      "Improved student satisfaction and retention rates",
+      "Cost savings through reduced paper-based processing"
+    ],
+    "proposed_solution": "Develop a comprehensive student self-service portal integrating course management, financial services, and document processing",
+    "company_description": "Mid-sized private university with approximately 12,000 enrolled students"
+  },
+  "functional_requirements": [
+    {"priority": "must-have", "description": "Students can register for courses within defined registration windows"},
+    {"priority": "must-have", "description": "System displays real-time seat availability per course section"},
+    {"priority": "must-have", "description": "Students can view and download official grade transcripts"},
+    {"priority": "should-have", "description": "Automated email notification upon successful registration or waitlist addition"},
+    {"priority": "should-have", "description": "Online fee payment supporting credit card and bank transfer"},
+    {"priority": "could-have", "description": "Academic advisor appointment booking through portal"}
+  ],
+  "non_functional_requirements": {
+    "performance": [
+      "System handles 3000 concurrent users during peak registration without slowdown"
+    ],
+    "security": [
+      "Two-factor authentication for student login",
+      "Session timeout after 15 minutes of inactivity"
+    ],
+    "usability": [
+      "Interface accessible on mobile browsers without dedicated app",
+      "Support for both Arabic and English language switching"
+    ]
+  }
+}

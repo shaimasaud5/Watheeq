@@ -1,0 +1,194 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>تسجيل الدخول — وثيق</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --ink:#1A2E4A;--blue:#1A5FAA;--bm:#2D7DD2;--bl:#EAF3FF;--sky:#D6EAFF;
+  --w:#FFFFFF;--paper:#F6F9FF;--rule:#D8E8F8;--muted:#6B87A8;--dark:#0D1E33;
+  --display:'DM Serif Display',serif;--body:'Cairo',sans-serif;
+  --error:#EF4444;
+}
+body{font-family:var(--body);background:var(--w);color:var(--ink);min-height:100vh;display:flex;}
+
+/* LAYOUT */
+.page{display:grid;grid-template-columns:1fr 1fr;min-height:100vh;width:100%;}
+
+/* LEFT — الصورة */
+.left{background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:2.5rem 2rem;position:relative;}
+
+/* شعار فوق على اليمين */
+.left-logo{position:absolute;top:1.5rem;right:2rem;}
+.left-logo img{height:70px;width:auto;filter:invert(25%) sepia(50%) saturate(500%) hue-rotate(190deg) brightness(0.75);}
+
+/* الصورة مع badges متداخلة */
+.illustration-wrap{position:relative;width:100%;max-width:580px;margin:auto;}
+.illustration{width:100%;object-fit:contain;display:block;}
+
+/* Badges متداخلة على الصورة */
+.badge-overlay{position:absolute;display:flex;align-items:center;gap:8px;background:var(--w);border:1px solid var(--rule);border-radius:100px;padding:7px 14px;box-shadow:0 4px 16px rgba(26,47,74,0.1);}
+.badge-overlay span{font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;}
+.badge-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.d-blue{background:var(--bm);}
+.d-green{background:#1D9E75;}
+.d-sky{background:var(--muted);}
+
+.b1{top:10%;left:-10px;}
+.b2{top:62%;left:-10px;}
+.b3{bottom:8%;left:10px;}
+
+/* RIGHT — الفورم */
+.right{background:var(--w);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:2rem 4rem 3rem;border-right:1px solid var(--rule);}
+
+.form-inner{width:100%;max-width:400px;text-align:center;}
+
+.form-title{font-family:var(--display);font-size:2rem;color:var(--ink);margin-bottom:1.4rem;margin-top:-1.5rem;}
+.form-sub{font-size:14px;color:var(--muted);margin-bottom:1.8rem;line-height:3;}
+.form-sub strong{color:var(--ink);font-weight:800;}
+
+.form-sub strong{color:var(--bm);font-weight:800;}
+
+/* FORM */
+.field{margin-bottom:1rem;text-align:right;}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:5px;}
+.required-star{color:var(--error);margin-left:2px;}
+.form-input{width:100%;height:44px;border:1.5px solid var(--rule);border-radius:100px;padding:0 16px;font-size:14px;font-family:var(--body);color:var(--ink);background:var(--w);outline:none;transition:border-color 0.2s;}
+.form-input:focus{border-color:var(--bm);box-shadow:0 0 0 3px rgba(45,125,210,0.1);}
+.form-input.input-error{border-color:var(--error);}
+.field-error{display:block;font-size:12px;color:var(--error);margin-top:4px;padding-right:4px;}
+
+/* PASSWORD */
+.input-password-wrapper{position:relative;}
+.input-password-wrapper .form-input{padding-left:44px;}
+.toggle-password{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);display:flex;align-items:center;background:none;border:none;cursor:pointer;transition:color 0.2s;}
+.toggle-password:hover{color:var(--ink);}
+.eye-icon{width:18px;height:18px;}
+
+/* تذكرني + نسيت كلمة المرور */
+.remember-row{display:flex;align-items:center;justify-content:space-between;margin-top:0.5rem;margin-bottom:0.5rem;}
+.remember-label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;}
+.remember-label input{accent-color:var(--bm);width:15px;height:15px;cursor:pointer;}
+.forgot-link{font-size:13px;color:var(--bm);text-decoration:none;font-weight:500;}
+.forgot-link:hover{text-decoration:underline;}
+
+/* ALERTS */
+.form-alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA;text-align:right;}
+
+/* BUTTON */
+.btn-primary{display:block;width:100%;height:46px;margin-top:1.2rem;background:var(--bm);color:#fff;font-family:var(--body);font-size:15px;font-weight:600;border-radius:100px;border:none;cursor:pointer;transition:background 0.2s;}
+.btn-primary:hover{background:var(--blue);}
+
+/* FOOTER LINK */
+.signup-link{text-align:center;font-size:13px;color:var(--muted);margin-top:1.2rem;}
+.signup-link a{color:var(--bm);text-decoration:none;font-weight:600;}
+.signup-link a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- LEFT — الصورة -->
+  <div class="left">
+
+    <!-- شعار فوق على اليمين -->
+    <div class="left-logo">
+      <a href="{% url 'frontend:landing' %}">
+        <img src="{% static 'img/logo.png' %}" alt="وثيق"/>
+      </a>
+    </div>
+
+    <!-- الصورة مع badges متداخلة -->
+    <div class="illustration-wrap">
+      <img class="illustration" src="{% static 'img/watheeq1.png' %}" alt="وثيق"/>
+
+      <div class="badge-overlay b1">
+        <div class="badge-dot d-blue"></div>
+        <span>تسجيل تلقائي بمجرد بدء الاجتماع</span>
+      </div>
+
+      <div class="badge-overlay b2">
+        <div class="badge-dot d-green"></div>
+        <span>يدعم العربية والإنجليزية معاً</span>
+      </div>
+
+      <div class="badge-overlay b3">
+        <div class="badge-dot d-sky"></div>
+        <span>تقارير BRD و MOM جاهزة فوراً</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT — الفورم -->
+  <div class="right">
+    <div class="form-inner">
+
+      <div class="form-title">تسجيل الدخول</div>
+      <div class="form-sub">أهلاً بعودتك في <strong>وثــيـق!</strong><br>سجّل دخولك للمتابعة في استخدام <strong>وثــيـق.</strong></div>
+
+      {% if form.errors %}
+      <div class="form-alert">اسم المستخدم أو كلمة المرور غير صحيحة.</div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="field">
+          <label class="form-label" for="id_username"><span class="required-star">*</span> اسم المستخدم</label>
+          <input type="text" id="id_username" name="username"
+            class="form-input {% if form.username.errors %}input-error{% endif %}"
+            placeholder="sarasaud"
+            value="{{ form.username.value|default:'' }}" autocomplete="username">
+          {% if form.username.errors %}<span class="field-error">{{ form.username.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div class="field">
+          <label class="form-label" for="id_password"><span class="required-star">*</span> كلمة المرور</label>
+          <div class="input-password-wrapper">
+            <input type="password" id="id_password" name="password"
+              class="form-input {% if form.password.errors %}input-error{% endif %}"
+              placeholder="••••••••" autocomplete="current-password">
+            <button type="button" class="toggle-password" data-target="id_password">
+              <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          {% if form.password.errors %}<span class="field-error">{{ form.password.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div class="remember-row">
+          <label class="remember-label">
+            <input type="checkbox" name="remember_me"/>
+            تذكرني
+          </label>
+          <span class="forgot-link" style="color:var(--muted);cursor:default;">نسيت كلمة المرور؟</span>
+        </div>
+
+        <button type="submit" class="btn-primary">تسجيل الدخول ←</button>
+      </form>
+
+      <div class="signup-link">ما عندك حساب؟ <a href="{% url 'frontend:signup' %}">إنشاء حساب</a></div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.querySelectorAll('.toggle-password').forEach(btn => {
+  btn.addEventListener('click', function () {
+    const input = document.getElementById(this.dataset.target);
+    input.type = input.type === 'password' ? 'text' : 'password';
+    this.querySelector('.eye-icon').style.opacity = input.type === 'text' ? '0.5' : '1';
+  });
+});
+</script>
+</body>
+</html>

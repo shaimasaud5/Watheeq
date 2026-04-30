@@ -1,0 +1,46 @@
+/* base.css — متغيرات وـ reset مشتركة */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --blue-primary:   #3B82C4;
+    --blue-dark:      #2563A8;
+    --blue-light:     #EBF3FC;
+    --text-primary:   #1A1A2E;
+    --text-secondary: #6B7280;
+    --text-muted:     #9CA3AF;
+    --border-color:   #D1D5DB;
+    --border-focus:   #3B82C4;
+    --bg-white:       #FFFFFF;
+    --bg-page:        #F7F9FC;
+    --error-color:    #EF4444;
+    --radius-sm:      6px;
+    --radius-md:      10px;
+    --radius-lg:      16px;
+    --shadow-card:    0 4px 24px rgba(0,0,0,0.07);
+}
+
+html, body {
+    height: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--text-primary);
+    background: var(--bg-page);
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+}
