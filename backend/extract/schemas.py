@@ -27,19 +27,35 @@ BRD_SCHEMA = {
         "overview": None,
         "pain_points": [],
     },
-    "functional_requirements": [],
+   "functional_requirements": [
+        {
+         "priority": None,
+         "description": None,
+        }
+    ],
     "non_functional_requirements": {
         "performance": [],
         "security": [],
         "usability": [],
     },
-    "risk_analysis": [],
+    "risk_analysis": [
+        {
+            "description": None,
+            "impact": None,
+        "   probability": None,
+        }
+    ],
     "document_control": {
         "authors": [],
         "approval": [],
         "version_history": [],
     },
-    "glossary": [],
+    "glossary": [
+     {
+         "term": None,
+         "definition": None,
+     }
+    ],
     "references": [],
     "appendix": [],
 }
@@ -53,11 +69,23 @@ MOM_SCHEMA = {
         "location": None,
         "facilitator": None,
     },
-    "attendees": [],
+    "attendees": [
+     {
+        "name": None,
+        "role": None,
+        }
+    ],
     "agenda": [],
     "discussion_summary": None,
     "decisions": [],
-    "action_items": [],
+    "action_items": [
+        {
+          "task": None,
+         "owner": None,
+         "due_date": None,
+         "status": None,
+        }
+    ],
     "next_meeting": None,
     "notes": None,
 }

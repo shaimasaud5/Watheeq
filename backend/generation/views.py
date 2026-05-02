@@ -41,20 +41,31 @@ class RegenerateDocumentAPIView(APIView):
                 "message": f"Used all {MAX_REGENERATE_ATTEMPTS} attempts. Please approve.",
             }, status=400)
 
+        # ── معلومات غلاف الوثيقة ────────────────────────────────
+        # version يتغير مع كل regenerate: 1.0 → 1.1 → 1.2 → 1.3
+        new_count  = count + 1
+        cover_meta = {
+            "date":    document.created_at.strftime("%B %d, %Y"),
+            "author":  document.project.owner.username if document.project.owner else "—",
+            "version": f"1.{new_count}",
+        }
+
         try:
             if document.doc_type == "BRD":
                 text, path, meta = generate_brd_from_schema(
                     gen_doc.extraction.filled_schema,
-                    document_id=document.id,
-                    project_name=document.project.name or "",
-                    output_subdir="pending",
+                    document_id   = document.id,
+                    project_name  = document.project.name or "",
+                    output_subdir = "pending",
+                    cover_meta    = cover_meta,
                 )
             else:
                 text, path, meta = generate_mom_from_schema(
                     gen_doc.extraction.filled_schema,
-                    document_id=document.id,
-                    project_name=document.project.name or "",
-                    output_subdir="pending",
+                    document_id   = document.id,
+                    project_name  = document.project.name or "",
+                    output_subdir = "pending",
+                    cover_meta    = cover_meta,
                 )
         except GenerationError as e:
             gen_doc.status = "FAILED"
@@ -62,8 +73,7 @@ class RegenerateDocumentAPIView(APIView):
             gen_doc.save(update_fields=["status", "meta"])
             return Response({"error": str(e)}, status=400)
 
-        new_count = count + 1
-        remaining = MAX_REGENERATE_ATTEMPTS - new_count
+        remaining             = MAX_REGENERATE_ATTEMPTS - new_count
         meta["regenerate_count"] = new_count
 
         gen_doc.content           = text

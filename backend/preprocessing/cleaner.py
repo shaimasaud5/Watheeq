@@ -1,3 +1,5 @@
+# preprocessing/cleaner
+
 import re
 import os
 from groq import Groq
@@ -84,7 +86,8 @@ class LLMCleaner:
 
     def __init__(self, model: str = "llama-3.3-70b-versatile"):
         self.model = model
-        self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        # self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        self.client = Groq(api_key=os.getenv("GROQ_API_KEY_TASK1"))
 
     def _post_clean(self, text: str) -> str:
         text = text.strip()

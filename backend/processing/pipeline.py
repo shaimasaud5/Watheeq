@@ -52,7 +52,7 @@ def run_processing_pipeline(transcript: Transcript):
             else:
                 # Split the chunk into the overlap line and the new lines
                 lines = chunk_text.split("\n")
-                new_lines = lines[overlap_count:]
+                new_lines = lines[overlap_count:] if len(lines) > overlap_count else lines
 
                 if new_lines:
                     # Translate only the new part of the chunk

@@ -1,37 +1,45 @@
 # generation/services/llm_client.py
-# ───────────────────────────────────
-# وظيفته الوحيدة: يرسل نصاً (prompt) لنموذج llama3 في Ollama
-# ويرجع الرد كنص.
+
+import os
+from groq import Groq
+
+# ── Ollama (محلي) ──────────────────────────────────────────────
+# import requests
+# OLLAMA_URL  = "http://ollama:11434/api/generate"
+# MODEL_NAME  = "llama3"
+# TEMPERATURE = 0.2
 #
-# Ollama هو السيرفر اللي يشغّل llama3 داخل Docker.
-# عنوانه: http://ollama:11434
+# def generate_text(prompt: str) -> str:
+#     payload = {
+#         "model":   MODEL_NAME,
+#         "prompt":  prompt,
+#         "stream":  False,
+#         "options": {"temperature": TEMPERATURE},
+#     }
+#     try:
+#         response = requests.post(OLLAMA_URL, json=payload, timeout=None)
+#         response.raise_for_status()
+#         return response.json().get("response", "").strip()
+#     except requests.exceptions.ConnectionError:
+#         raise RuntimeError("لا يمكن الاتصال بـ Ollama — تأكد إن Docker يعمل.")
+#     except Exception as e:
+#         raise RuntimeError(f"خطأ في Ollama: {e}")
+# ───────────────────────────────────────────────────────────────
 
-import requests
-
-OLLAMA_URL  = "http://ollama:11434/api/generate"
-MODEL_NAME  = "llama3"
-TEMPERATURE = 0.2  # 0 = ثابت ودقيق، 1 = عشوائي ومبدع
-
+# ── Groq API ───────────────────────────────────────────────────
+MODEL_NAME  = "llama-3.3-70b-versatile"
+TEMPERATURE = 0.2
 
 def generate_text(prompt: str) -> str:
-    """
-    يرسل prompt لـ llama3 ويرجع الرد كنص.
-    """
-
-    # البيانات المرسلة لـ Ollama
-    payload = {
-        "model":   MODEL_NAME,
-        "prompt":  prompt,
-        "stream":  False,      # نريد الرد كاملاً دفعة واحدة
-        "options": {"temperature": TEMPERATURE},
-    }
-
+    """يرسل prompt لـ Groq ويرجع الرد كنص."""
     try:
-        response = requests.post(OLLAMA_URL, json=payload, timeout=None)
-        response.raise_for_status()
-        return response.json().get("response", "").strip()
-
-    except requests.exceptions.ConnectionError:
-        raise RuntimeError("لا يمكن الاتصال بـ Ollama — تأكد إن Docker يعمل.")
+        client = Groq(api_key=os.getenv("GROQ_API_KEY_TASK4"))
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=TEMPERATURE,
+        )
+        return response.choices[0].message.content.strip()
     except Exception as e:
-        raise RuntimeError(f"خطأ في Ollama: {e}")
+        raise RuntimeError(f"خطأ في Groq: {e}")
+# ───────────────────────────────────────────────────────────────

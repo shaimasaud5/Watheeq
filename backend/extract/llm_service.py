@@ -6,34 +6,52 @@ import json
 import re
 import requests
 from typing import Optional
+import os
+from groq import Groq
+
 
 OLLAMA_URL = "http://ollama:11434/api/generate"
-MODEL_NAME = "llama3.2"
-
+#MODEL_NAME = "llama3.2"
+MODEL_NAME = "llama-3.3-70b-versatile"
 
 def _call_ollama(prompt: str) -> Optional[str]:
-    """يرسل prompt لـ Ollama ويرجع النص الخام."""
-    payload = {
-        "model":   MODEL_NAME,
-        "prompt":  prompt,
-        "stream":  False,
-        "format":  "json",
-        "options": {"temperature": 0},
-    }
+    """يرسل prompt لـ Groq ويرجع النص الخام (نفس interface القديم)."""
     try:
-        resp = requests.post(OLLAMA_URL, json=payload, timeout=None)
-        resp.raise_for_status()
-        data = resp.json()
-        for key in ("response", "text", "output", "result"):
-            if data.get(key):
-                val = data[key]
-                if isinstance(val, (dict, list)):
-                    return json.dumps(val, ensure_ascii=False)
-                return str(val)
-        return json.dumps(data, ensure_ascii=False)
+        client = Groq(api_key=os.getenv("GROQ_API_KEY_TASK3"))
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0,
+            response_format={"type": "json_object"},
+        )
+        return response.choices[0].message.content
     except Exception as e:
-        print(f"OLLAMA ERROR: {e}")
+        print(f"GROQ ERROR: {e}")
         return None
+# ───────────────────────────────────────────────────────────────
+#def _call_ollama(prompt: str) -> Optional[str]:
+#    """يرسل prompt لـ Ollama ويرجع النص الخام."""
+#    payload = {
+#        "model":   MODEL_NAME,
+#        "prompt":  prompt,
+#        "stream":  False,
+#        "format":  "json",
+#        "options": {"temperature": 0},
+#    }
+#    try:
+#        resp = requests.post(OLLAMA_URL, json=payload, timeout=None)
+#        resp.raise_for_status()
+#        data = resp.json()
+#        for key in ("response", "text", "output", "result"):
+#            if data.get(key):
+#                val = data[key]
+#                if isinstance(val, (dict, list)):
+#                    return json.dumps(val, ensure_ascii=False)
+#                return str(val)
+#       return json.dumps(data, ensure_ascii=False)
+#    except Exception as e:
+#        print(f"OLLAMA ERROR: {e}")
+#        return None
 
 
 def _safe_parse(text: str) -> Optional[dict]:
@@ -71,8 +89,29 @@ def extract_section(section_name: str, section_template, context: str, doc_type:
         focus   = "Focus on: decisions, action items, attendees, agenda, discussion points."
     else:
         persona = "expert business analyst extracting structured requirements from meeting transcripts"
-        focus   = "Focus on: requirements, scope, stakeholders, risks, objectives."
-
+        section_guidance = {
+            "project_scope": (
+                 "in_scope means HIGH-LEVEL SYSTEM COMPONENTS or MODULES (e.g. Order Tracking, Dashboard). "
+                 "Do NOT include functional requirements like 'creating a request' or 'managing inventory' — those belong in functional_requirements. "
+                 "out_of_scope means what will NOT be built (e.g. Mobile App)."
+         ),
+        "functional_requirements": (
+            "These are specific USER ACTIONS or SYSTEM BEHAVIORS (e.g. create a request, track order, send notification). "
+            "Do NOT include high-level components — those belong in project_scope."
+        ),
+        "stakeholders": (
+            "These are ROLES or GROUPS involved in the project (e.g. client, development team, management, users). "
+            "Do NOT include meeting authors or approvers — those belong in document_control."
+        ),
+        "glossary": (
+            "term = the technical English word. "
+            "definition = its meaning in context. "
+            "Example: term: 'order', definition: 'a customer request for products'. "
+            "Do NOT swap term and definition."
+        ),
+    }
+    specific = section_guidance.get(section_name, "")
+    focus = f"Focus on: requirements, scope, stakeholders, risks, objectives. {specific}"
     prompt = f"""You are an {persona}.
 
 TASK:

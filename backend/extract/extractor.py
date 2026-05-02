@@ -53,7 +53,7 @@ def _extract(schema: dict, chunks: list, doc_type: str) -> dict:
         top_chunks = retrieve_top_chunks(
             section_embedding=section_embedding,
             chunks=chunks,
-            top_k=3,
+            top_k=5,
         )
 
         # 3. ندمج النصوص في context واحد للـ LLM

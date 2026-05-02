@@ -28,16 +28,14 @@ def trigger_extraction(sender, instance, **kwargs):
                 filled_schema = extract_brd(chunks)
             else:
                 filled_schema = extract_mom(chunks)
-
+            Extraction.objects.filter(document=document).delete()
             Extraction.objects.update_or_create(
                 document=document,
-                defaults={
-                    "filled_schema": filled_schema,
-                    "chunk": TranscriptChunk.objects.filter(
+                    filled_schema = filled_schema,
+                    chunk = TranscriptChunk.objects.filter(
                         transcript=instance,
                         status=TranscriptChunk.StatusChoices.COMPLETED,
                     ).first(),
-                }
             )
             print(f"[ EXTRACT ] Done for document {document.id}")
 

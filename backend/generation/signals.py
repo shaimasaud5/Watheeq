@@ -25,28 +25,41 @@ def create_and_generate_document(sender, instance, created, **kwargs):
         defaults={"extraction": instance, "status": "EXTRACTED"}
     )
 
+    # ── معلومات غلاف الوثيقة ────────────────────────────────────
+    # هذه المعلومات تأتي من قاعدة البيانات مباشرة — لا من السكيما
+    # date    = تاريخ إنشاء الوثيقة
+    # author  = اسم صاحب المشروع
+    # version = 1.0 دائماً عند التوليد الأول
+    cover_meta = {
+        "date":    document.created_at.strftime("%B %d, %Y"),
+        "author":  document.project.owner.username if document.project.owner else "—",
+        "version": "1.0",
+    }
+
     # نولّد الـ .docx مباشرة
     try:
         if document.doc_type == "BRD":
             text, path, meta = generate_brd_from_schema(
                 instance.filled_schema,
-                document_id=document.id,
-                project_name=document.project.name or "",
-                output_subdir="pending",
+                document_id   = document.id,
+                project_name  = document.project.name or "",
+                output_subdir = "pending",
+                cover_meta    = cover_meta,
             )
         else:
             text, path, meta = generate_mom_from_schema(
                 instance.filled_schema,
-                document_id=document.id,
-                project_name=document.project.name or "",
-                output_subdir="pending",
+                document_id   = document.id,
+                project_name  = document.project.name or "",
+                output_subdir = "pending",
+                cover_meta    = cover_meta,
             )
 
-        meta["regenerate_count"]   = 0
-        gen_doc.content            = text
-        gen_doc.pending_file.name  = path
-        gen_doc.status             = "GENERATED"
-        gen_doc.meta               = meta
+        meta["regenerate_count"]  = 0
+        gen_doc.content           = text
+        gen_doc.pending_file.name = path
+        gen_doc.status            = "GENERATED"
+        gen_doc.meta              = meta
         gen_doc.save(update_fields=["content", "pending_file", "status", "meta"])
 
     except Exception as e:
