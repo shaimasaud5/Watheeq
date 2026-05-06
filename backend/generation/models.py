@@ -6,12 +6,12 @@ from extract.models import Extraction
 class GeneratedDocument(models.Model):
 
     STATUS_CHOICES = [
-        ("DRAFT",     "Draft"),
-        ("EXTRACTED", "Extracted"),  
-        ("GENERATED", "Generated"), 
-        ("APPROVED",  "Approved"),  
-        ("FAILED",    "Failed"),
-    ]
+    ("DRAFT", "Draft"),
+    ("IN_PROGRESS", "In Progress"),
+    ("GENERATED", "Generated"),
+    ("APPROVED", "Approved"),
+    ("FAILED", "Failed"),
+]
 
     
     document = models.OneToOneField(

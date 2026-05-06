@@ -110,6 +110,41 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
 .btn-regen:disabled{opacity:0.4;cursor:not-allowed;}
 .btn-regen svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;}
 
+
+
+/* SUCCESS REDIRECT MESSAGE AFTER GENERATION */
+.success-redirect-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(13,30,51,0.68);
+  z-index:210;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:1rem;
+  backdrop-filter:blur(4px);
+}
+.success-redirect-overlay.hidden{display:none!important;}
+.success-redirect-card{
+  background:var(--bm);
+  color:#fff;
+  padding:34px 46px;
+  border-radius:28px;
+  text-align:center;
+  font-weight:800;
+  font-size:20px;
+  line-height:1.8;
+  box-shadow:0 18px 45px rgba(0,0,0,0.25);
+  min-width:360px;
+}
+.success-redirect-card .small{
+  display:block;
+  font-size:13px;
+  font-weight:600;
+  opacity:.9;
+  margin-top:6px;
+}
+
 /* LOADING SPINNER INSIDE POPUP */
 .inline-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:1.5rem;color:var(--muted);font-size:14px;}
 .sm-spinner{width:20px;height:20px;border:2px solid var(--rule);border-top-color:var(--bm);border-radius:50%;animation:spin 0.8s linear infinite;}
@@ -164,7 +199,81 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
     </div>
     <div class="content">
 
-      <div class="proc-card">
+
+      
+<!-- BAR 1: Meeting Progress (uses Meeting.status from Recall webhook) -->
+<div class="proc-card" id="meeting-bar">
+  <div class="proc-header">
+    <div class="proc-title">حالة الاجتماع</div>
+    <div class="proc-sub">
+      متابعة الأيجنت من لحظة انطلاقه إلى تفريغ الترانسكريبت.
+    </div>
+    <div class="proc-project">{{ project.name }}</div>
+  </div>
+
+  <div class="overall-progress">
+    <div class="overall-label">
+      <span>تقدم الاجتماع</span>
+      <strong id="meeting-overall-pct">0%</strong>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="meeting-progress-fill" style="width:0%;"></div>
+    </div>
+  </div>
+
+  <div class="steps">
+
+    <div class="step" id="meeting-step-1">
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <div class="step-info">
+        <div class="step-name">انطلاق الأيجنت إلى الاجتماع</div>
+        <div class="step-desc">تم إرسال الأيجنت للانضمام إلى الاجتماع</div>
+      </div>
+      <span class="step-status" id="meeting-step-1-status">في الانتظار</span>
+    </div>
+
+    <div class="step" id="meeting-step-2">
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <div class="step-info">
+        <div class="step-name">الأيجنت حاضر في الاجتماع</div>
+        <div class="step-desc">الأيجنت داخل الاجتماع ويقوم بالتسجيل</div>
+      </div>
+      <span class="step-status" id="meeting-step-2-status">في الانتظار</span>
+    </div>
+
+    <div class="step" id="meeting-step-3">
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <div class="step-info">
+        <div class="step-name">انتهى الاجتماع</div>
+        <div class="step-desc">تم إنهاء الاجتماع وجاري تجهيز التسجيل</div>
+      </div>
+      <span class="step-status" id="meeting-step-3-status">في الانتظار</span>
+    </div>
+
+    <div class="step" id="meeting-step-4">
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg>
+      </div>
+      <div class="step-info">
+        <div class="step-name">تفريغ الترانسكريبت</div>
+        <div class="step-desc">تحويل الصوت إلى نص باستخدام Whisper</div>
+      </div>
+      <span class="step-status" id="meeting-step-4-status">في الانتظار</span>
+    </div>
+
+  </div>
+</div>
+
+
+
+      <!-- BAR 2: AI Processing (Cleaning + Chunking + Semantic English + Extraction + Generation) ===== --> 
+      <div class="proc-card" id="processing-bar" style="display: none;">
         <div class="proc-header">
           <div class="proc-title">جارٍ معالجة مشروعك</div>
           <div class="proc-sub">يتم الآن تحليل اجتماعك وتوليد الوثيقة تلقائياً.<br>لا تغلق هذه الصفحة.</div>
@@ -273,10 +382,146 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
 </div>
 
 <script>
+/* BAR 1: Meeting Progress */
+
+// Meeting ID comes from the Django view context and is used by polling.
+const MEETING_ID = {{ meeting_id|default:"0" }};
+let meetingBarSwitched = false;
+
+function setMeetingStep(n, state) {
+  const el = document.getElementById('meeting-step-' + n);
+  const st = document.getElementById('meeting-step-' + n + '-status');
+  if (!el || !st) return;
+
+  el.className = 'step ' + (state === 'active' ? 'active' : state === 'done' ? 'done' : '');
+
+  const iconEl = el.querySelector('.step-icon');
+  const oldSpinner = iconEl.querySelector('.step-spinner');
+  if (oldSpinner) oldSpinner.remove();
+
+  if (state === 'active') {
+    const sp = document.createElement('div');
+    sp.className = 'step-spinner';
+    iconEl.appendChild(sp);
+    st.textContent = 'جارٍ المعالجة...';
+  } else if (state === 'done') {
+    st.textContent = 'اكتمل';
+  } else {
+    st.textContent = 'في الانتظار';
+  }
+}
+
+function setMeetingProgress(pct) {
+  document.getElementById('meeting-progress-fill').style.width = pct + '%';
+  document.getElementById('meeting-overall-pct').textContent = pct + '%';
+}
+
+/**
+ * Updates Bar 1 based on meeting status from backend (sequential steps).
+ *
+ * created      -> all steps waiting
+ * joining      -> step 1 loading
+ * in_meeting   -> step 1 done, step 2 loading
+ * ended        -> step 1-2 done, step 3 loading
+ * transcribing -> step 1-3 done, step 4 loading
+ * transcribed  -> all steps done, then switch to Bar 2
+ */
+function updateMeetingUI(status) {
+  setMeetingStep(1, 'waiting');
+  setMeetingStep(2, 'waiting');
+  setMeetingStep(3, 'waiting');
+  setMeetingStep(4, 'waiting');
+  setMeetingProgress(0);
+
+  if (status === 'joining') {
+    setMeetingStep(1, 'active');
+    setMeetingProgress(25);
+
+  } else if (status === 'in_meeting') {
+    setMeetingStep(1, 'done');
+    setMeetingStep(2, 'active');
+    setMeetingProgress(50);
+
+  } else if (status === 'ended') {
+    setMeetingStep(1, 'done');
+    setMeetingStep(2, 'done');
+    setMeetingStep(3, 'active');
+    setMeetingProgress(75);
+
+  } else if (status === 'post_meeting') {
+  setMeetingStep(1, 'done');
+  setMeetingStep(2, 'done');
+  setMeetingStep(3, 'done');
+  setMeetingStep(4, 'active');
+  setMeetingProgress(90);
+
+  } else if (status === 'transcribing') {
+    setMeetingStep(1, 'done');
+    setMeetingStep(2, 'done');
+    setMeetingStep(3, 'done');
+    setMeetingStep(4, 'active');
+    setMeetingProgress(90);
+
+  } else if (status === 'transcribed') {
+    setMeetingStep(1, 'done');
+    setMeetingStep(2, 'done');
+    setMeetingStep(3, 'done');
+    setMeetingStep(4, 'done');
+    setMeetingProgress(100);
+
+    if (!meetingBarSwitched) {
+      meetingBarSwitched = true;
+      setTimeout(() => {
+        document.getElementById('meeting-bar').style.display = 'none';
+        document.getElementById('processing-bar').style.display = 'block';
+        startPipelinePolling();
+      }, 2000);
+    }
+  }
+}
+
+async function pollMeetingStatus() {
+  if (!MEETING_ID) return;
+
+  try {
+    const res = await fetch(`/api/meetings/${MEETING_ID}/status/`);
+    if (!res.ok) return;
+
+    const data = await res.json();
+    console.log('Meeting status:', data.status);
+    updateMeetingUI(data.status);
+  } catch (e) {
+    console.error('meeting polling error', e);
+  }
+}
+
+
+/* BAR 2: AI Processing */
 const DOC_ID = {{ document_id }};
 const MAX_REGEN = 3;
 let regenRemaining = MAX_REGEN;
 let pollingTimer = null;
+let pipelinePollingTimer = null;
+let popupShown = false;
+
+
+const MODE = new URLSearchParams(window.location.search).get('mode');
+
+if (MODE === 'regenerate') {
+  document.getElementById('meeting-bar').style.display = 'none';
+  document.getElementById('processing-bar').style.display = 'block';
+
+  setStep(1, 'done');
+  setStep(2, 'done');
+  setStep(3, 'done');
+  setStep(4, 'active');
+  setProgress(75);
+
+  startPipelinePolling();
+} else {
+  pollMeetingStatus();
+  setInterval(pollMeetingStatus, 2000);
+}
 
 /* ---- STEP HELPERS ---- */
 function setStep(n, state) {
@@ -309,46 +554,85 @@ function setProgress(pct) {
   document.getElementById('overall-pct').textContent = pct + '%';
 }
 
-/* ---- POLLING ---- */
-async function pollStatus() {
-  try {
-    const res = await fetch(`/api/generation/documents/${DOC_ID}/status/`);
-    if (!res.ok) return;
-    const data = await res.json();
-    updateUI(data);
+	/* ---- PIPELINE POLLING FOR BAR 2 ---- */
+function normalizePipelineStatus(status) {
+  if (!status) return 'waiting';
 
-    if (data.status === 'GENERATED') {
-      clearInterval(pollingTimer);
-      showPopup(data);
-    } else if (data.status === 'APPROVED') {
-      clearInterval(pollingTimer);
-      window.location.href = `/projects/overview/{{ project.id }}/`;
-    } else if (data.status === 'FAILED') {
-      clearInterval(pollingTimer);
-      setStep(4, 'failed');
+  if (status === 'pending' || status === 'DRAFT') {
+    return 'waiting';
+  }
+
+  if (status === 'in_progress' || status === 'IN_PROGRESS') {
+    return 'active';
+  }
+
+  if (
+    status === 'completed' ||
+    status === 'GENERATED' ||
+    status === 'APPROVED'
+  ) {
+    return 'done';
+  }
+
+  if (status === 'failed' || status === 'FAILED') {
+    return 'failed';
+  }
+
+  return 'waiting';
+}
+
+async function pollPipelineStatus() {
+  try {
+    const res = await fetch(`/api/meetings/${MEETING_ID}/pipeline-status/`);
+    if (!res.ok) return;
+
+    const data = await res.json();
+
+    const cleaningState = normalizePipelineStatus(data.preprocessing);
+    const processingState = normalizePipelineStatus(data.processing);
+    const extractionState = normalizePipelineStatus(data.extraction);
+    const generationState = normalizePipelineStatus(data.generation);
+
+    setStep(1, cleaningState);
+    setStep(2, processingState);
+    setStep(3, extractionState);
+    setStep(4, generationState);
+
+    let progress = 0;
+    if (cleaningState === 'done') progress += 25;
+    if (processingState === 'done') progress += 25;
+    if (extractionState === 'done') progress += 25;
+    if (generationState === 'done') progress += 25;
+    setProgress(progress);
+
+    const hasFailed =
+      cleaningState === 'failed' ||
+      processingState === 'failed' ||
+      extractionState === 'failed' ||
+      generationState === 'failed';
+
+    if (hasFailed) {
+      clearInterval(pipelinePollingTimer);
+      pipelinePollingTimer = null;
+      return;
+    }
+
+    if (generationState === 'done' && !popupShown && data.generation === 'GENERATED') {
+      popupShown = true;
+      clearInterval(pipelinePollingTimer);
+      window.location.href = `/documents/${DOC_ID}/`;
+
     }
   } catch (e) {
-    console.error('polling error', e);
+    console.error('pipeline polling error', e);
   }
 }
 
-function updateUI(data) {
-  // المراحل 1-3: بعد الدمج ستضاف حقول مثل data.stage_1_done
-  // حالياً نعتمد على status فقط
-  const s = data.status;
+function startPipelinePolling() {
+  if (pipelinePollingTimer) return;
 
-  if (s === 'DRAFT') {
-    setStep(1, 'waiting'); setStep(2, 'waiting'); setStep(3, 'waiting'); setStep(4, 'waiting');
-    setProgress(0);
-  } else if (s === 'EXTRACTED') {
-    setStep(1, 'done'); setStep(2, 'done'); setStep(3, 'done'); setStep(4, 'active');
-    setProgress(75);
-  } else if (s === 'GENERATED') {
-    setStep(1, 'done'); setStep(2, 'done'); setStep(3, 'done'); setStep(4, 'done');
-    setProgress(100);
-  } else if (s === 'FAILED') {
-    setStep(4, 'failed');
-  }
+  pollPipelineStatus();
+  pipelinePollingTimer = setInterval(pollPipelineStatus, 3000);
 }
 
 /* ---- POPUP ---- */
@@ -410,8 +694,12 @@ async function approveDoc() {
 async function regenDoc() {
   if (regenRemaining <= 0) return;
   setPopupLoading(true, 'جارٍ إعادة التوليد...');
+  setStep(1, 'done');
+  setStep(2, 'done');
+  setStep(3, 'done');
   setStep(4, 'active');
   setProgress(75);
+
   try {
     const res = await fetch(`/api/generation/documents/${DOC_ID}/regenerate/`, {
       method: 'POST',
@@ -419,12 +707,13 @@ async function regenDoc() {
     });
     const data = await res.json();
     setPopupLoading(false);
+
     if (res.ok) {
-      setStep(4, 'done');
-      setProgress(100);
-      regenRemaining = data.regenerate_remaining;
-      if (data.preview) document.getElementById('popup-preview').textContent = data.preview;
-      updateRegenUI();
+      closePopup();
+      popupShown = false;
+      document.getElementById('meeting-bar').style.display = 'none';
+      document.getElementById('processing-bar').style.display = 'block';
+      startPipelinePolling();
     } else if (data.error === 'limit_reached') {
       regenRemaining = 0;
       updateRegenUI();
@@ -468,31 +757,16 @@ document.addEventListener('click', e => {
   }
 });
 
-/* ---- START ---- */
-// بدء التوليد مباشرة عند فتح الصفحة
-window.addEventListener('load', async () => {
-  setStep(1, 'active');
-  setProgress(5);
-
-  // استدعاء generate
-  try {
-    const res = await fetch(`/api/generation/documents/${DOC_ID}/generate/`, {
-      method: 'POST',
-      headers: { 'X-CSRFToken': getCookie('csrftoken') }
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setStep(1, 'done'); setStep(2, 'done'); setStep(3, 'done'); setStep(4, 'done');
-      setProgress(100);
-      showPopup(data);
-    } else {
-      setStep(4, 'failed');
-    }
-  } catch (e) {
-    // إذا فشل الاتصال — ابدأ polling
-    pollingTimer = setInterval(pollStatus, 4000);
-  }
+	/* ---- START ---- */
+// Bar 1 starts first. Bar 2 starts automatically after Meeting.status becomes transcribed.
+window.addEventListener('load', () => {
+  setStep(1, 'waiting');
+  setStep(2, 'waiting');
+  setStep(3, 'waiting');
+  setStep(4, 'waiting');
+  setProgress(0);
 });
+
 </script>
 </body>
 </html>

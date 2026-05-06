@@ -40,9 +40,22 @@ def process_recording_done_webhook(bot_id: str):
     → merge speakers
     → save processed_json
     → delete recording
+
+    Bar 2 status:
+    pending → in_progress → completed / failed
     """
 
     meeting = Meeting.objects.get(recall_bot_id=bot_id)
+
+    transcript, _ = Transcript.objects.update_or_create(
+        meeting=meeting,
+        defaults={
+            "source": Transcript.SOURCE_HYBRID,
+            "meeting_link": meeting.meeting_link,
+            "status": Transcript.STATUS_IN_PROGRESS,
+            "error_message": "",
+        }
+    )
 
     video_path = None
 
@@ -53,23 +66,40 @@ def process_recording_done_webhook(bot_id: str):
 
         whisper_segments = transcribe_audio(video_path)
 
+        # هنا فقط حالة meeting العامة للبار الأول
+        meeting.status = Meeting.STATUS_TRANSCRIBED
+        meeting.save(update_fields=["status"])
+
         processed_json = build_processed_json_from_whisper_and_speakers(
             whisper_segments=whisper_segments,
             speaker_timeline=speaker_timeline,
             meeting_id=meeting.id,
         )
 
-        Transcript.objects.update_or_create(
-            meeting=meeting,
-            defaults={
-                "source": Transcript.SOURCE_HYBRID,
-                "meeting_link": meeting.meeting_link,
-                "processed_json": processed_json,
-                "processed_at": timezone.now(),
-            }
-        )
+        transcript.source = Transcript.SOURCE_HYBRID
+        transcript.meeting_link = meeting.meeting_link
+        transcript.processed_json = processed_json
+        transcript.processed_at = timezone.now()
+        # تحديث البار الثاني تاسك 1 تصير كومبليتد = وصل الجيسون فايل = تنظف النص 
+        transcript.status = Transcript.STATUS_COMPLETED
+        transcript.error_message = ""
+        transcript.save(update_fields=[
+            "source",
+            "meeting_link",
+            "processed_json",
+            "processed_at",
+            "status",
+            "error_message",
+        ])
 
         return processed_json
+
+    except Exception as e:
+        transcript.status = Transcript.STATUS_FAILED
+        transcript.error_message = str(e)
+        transcript.save(update_fields=["status", "error_message"])
+
+        raise
 
     finally:
         if video_path and os.path.exists(video_path):

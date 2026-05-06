@@ -6,11 +6,10 @@ from .pipeline import run_processing_pipeline
 
 @receiver(post_save, sender=Transcript)
 def trigger_processing_pipeline(sender, instance, created, **kwargs):
-    """
-    Automatically triggers the processing pipeline
-    when a new Transcript is saved to the database.
-    """
-    if created:
-        print(f"[ SIGNAL ] New transcript detected, starting pipeline...")
+
+    if (
+        instance.status == Transcript.STATUS_COMPLETED
+        and not hasattr(instance, "processing_result")
+    ):
+        print("[ SIGNAL ] Preprocessing completed, starting processing pipeline...")
         run_processing_pipeline(instance)
-        

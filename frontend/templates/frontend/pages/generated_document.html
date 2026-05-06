@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>{{ doc.doc_type }} — {{ doc.project.name }} — وثيق</title>
+<title>{{ base_doc.doc_type }} — {{ doc.project.name }} — وثيق</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -160,10 +160,10 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
 
   <div class="main">
     <div class="topbar">
-      <a href="{% url 'frontend:overview' doc.project.id %}" class="back-btn">
+      <a href="{% url 'frontend:overview' project.id %}" class="back-btn">
         <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
       </a>
-      <div class="topbar-title">{{ doc.doc_type }} — {{ doc.project.name }}</div>
+      <div class="topbar-title">{{ base_doc.doc_type }} — {{ project.name }}</div>
       <div class="topbar-actions">
         {% if doc.status == 'GENERATED' %}
         <button class="btn-review" onclick="openPopup()">
@@ -272,7 +272,7 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
 </div>
 
 <script>
-const DOC_ID = {{ doc.id }};
+const DOC_ID = {{ base_doc.id }};
 let regenRemaining = {{ regen_remaining }};
 
 function openPopup() {
@@ -326,29 +326,37 @@ async function approveDoc() {
     alert('خطأ في الاتصال بالخادم.');
   }
 }
-
 async function regenDoc() {
   if (regenRemaining <= 0) return;
+
   showLoading('جارٍ إعادة توليد الوثيقة...');
+
   try {
     const res = await fetch(`/api/generation/documents/${DOC_ID}/regenerate/`, {
       method: 'POST',
       headers: { 'X-CSRFToken': getCookie('csrftoken') }
     });
+
     const data = await res.json();
     hideLoading();
+
     if (res.ok) {
       regenRemaining = data.regenerate_remaining;
-      if (data.preview) {
-        document.getElementById('popup-preview').textContent = data.preview;
-      }
       updateRegenUI();
+
+      // بعد قبول إعادة التوليد، ارجعي لصفحة البار
+      window.location.href = "{% url 'frontend:processing' project.id %}?mode=regenerate";
+
     } else if (data.error === 'limit_reached') {
+      regenRemaining = 0;
+      updateRegenUI();
       alert('لقد استنفدت جميع محاولات إعادة التوليد.');
       document.getElementById('btn-regen').disabled = true;
+
     } else {
       alert('حدث خطأ: ' + (data.error || 'يرجى المحاولة مجدداً.'));
     }
+
   } catch (e) {
     hideLoading();
     alert('خطأ في الاتصال بالخادم.');

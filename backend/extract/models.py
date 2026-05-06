@@ -1,4 +1,3 @@
-# extract/models.py
 from django.db import models
 from project.models import Document
 from processing.models import TranscriptChunk
@@ -6,23 +5,31 @@ from processing.models import TranscriptChunk
 
 class Extraction(models.Model):
     """
-    جدول مهمة 3 — يحفظ الـ filled_schema المستخرجة.
+    Represents the extraction stage (Task 3).
 
-    يخدم مهمتين:
-    - مهمة 2: ترسل له الـ chunks عند استدعاء مهمة 3
-              chunk → transcript → chunks كلها
-    - مهمة 4: تسحب filled_schema عبر document.extraction
+    Stores the filled_schema generated from transcript chunks
+    after processing (chunking, translation, embeddings).
+    Used as input for the generation stage.
     """
 
-    # OneToOne — كل وثيقة لها استخراج واحد فقط
+    STATUS_PENDING = "pending"
+    STATUS_IN_PROGRESS = "in_progress"
+    STATUS_COMPLETED = "completed"
+    STATUS_FAILED = "failed"
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "Pending"),
+        (STATUS_IN_PROGRESS, "In Progress"),
+        (STATUS_COMPLETED, "Completed"),
+        (STATUS_FAILED, "Failed"),
+    ]
+
     document = models.OneToOneField(
         Document,
         on_delete=models.CASCADE,
         related_name="extraction",
     )
 
-    # مرجع لأي chunk - من مهمة 2
-    # عبره نعرف الترانسكريبت وبالتالي جميع الـ chunks
     chunk = models.ForeignKey(
         TranscriptChunk,
         on_delete=models.SET_NULL,
@@ -31,8 +38,18 @@ class Extraction(models.Model):
         related_name="extractions",
     )
 
-    # السكيما المستخرجة — مدخل مهمة 4
+
     filled_schema = models.JSONField()
+
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING,
+    )
+
+    error_message = models.TextField(blank=True, default="")
+
 
     created_at = models.DateTimeField(auto_now_add=True)
 

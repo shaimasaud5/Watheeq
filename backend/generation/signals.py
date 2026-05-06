@@ -9,20 +9,22 @@ from .services.orchestrator import GenerationError, generate_brd_from_schema, ge
 @receiver(post_save, sender=Extraction)
 def create_and_generate_document(sender, instance, created, **kwargs):
     """
-    بعد حفظ Extraction من مهمة 3 تلقائياً:
+    بعد اكتمال مرحلة Extraction (status = completed):
     1. ينشئ GeneratedDocument
     2. يولّد الـ .docx مباشرة
     بدون تدخل المستخدم.
     """
-    if not created:
+    
+    if instance.status != Extraction.STATUS_COMPLETED:
         return
+
 
     document = instance.document
 
     # ننشئ GeneratedDocument ونربطه بالـ Extraction
     gen_doc, _ = GeneratedDocument.objects.get_or_create(
         document=document,
-        defaults={"extraction": instance, "status": "EXTRACTED"}
+        defaults={"extraction": instance, "status": "IN_PROGRESS"}  # ← هنا فقط التعديل
     )
 
     # ── معلومات غلاف الوثيقة ────────────────────────────────────
@@ -38,6 +40,10 @@ def create_and_generate_document(sender, instance, created, **kwargs):
 
     # نولّد الـ .docx مباشرة
     try:
+        # بداية التوليد (loading للبار)
+        gen_doc.status = "IN_PROGRESS"
+        gen_doc.save(update_fields=["status"])
+
         if document.doc_type == "BRD":
             text, path, meta = generate_brd_from_schema(
                 instance.filled_schema,

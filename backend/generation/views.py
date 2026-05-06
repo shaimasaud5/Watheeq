@@ -50,6 +50,10 @@ class RegenerateDocumentAPIView(APIView):
             "version": f"1.{new_count}",
         }
 
+        #  Start regenerate: set generation to loading (Bar 2)
+        gen_doc.status = "IN_PROGRESS"
+        gen_doc.save(update_fields=["status"])
+
         try:
             if document.doc_type == "BRD":
                 text, path, meta = generate_brd_from_schema(

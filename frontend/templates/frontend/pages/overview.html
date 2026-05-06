@@ -218,8 +218,8 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
                 <div class="doc-type-name">{{ doc.doc_type }}</div>
                 <div class="doc-date">{{ doc.created_at|date:"j F Y" }}</div>
               </div>
-              <span class="doc-status {% if doc.status == 'APPROVED' %}s-approved{% elif doc.status == 'GENERATED' %}s-generated{% elif doc.status == 'EXTRACTED' %}s-extracted{% elif doc.status == 'FAILED' %}s-failed{% else %}s-draft{% endif %}">
-                {% if doc.status == 'APPROVED' %}معتمد{% elif doc.status == 'GENERATED' %}مُوَلَّد{% elif doc.status == 'EXTRACTED' %}مُستخرج{% elif doc.status == 'FAILED' %}فشل{% else %}مسودة{% endif %}
+              <span class="doc-status {% if doc.generated.status == 'APPROVED' %}s-approved{% elif doc.generated.status == 'GENERATED' %}s-generated{% elif doc.status == 'EXTRACTED' %}s-extracted{% elif doc.status == 'FAILED' %}s-failed{% else %}s-draft{% endif %}">
+                {% if doc.generated.status == 'APPROVED' %}معتمد{% elif doc.generated.status == 'GENERATED' %}مُوَلَّد{% elif doc.generated.status == 'EXTRACTED' %}مُستخرج{% elif doc.status == 'FAILED' %}فشل{% else %}مسودة{% endif %}
               </span>
               <div class="doc-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
             </a>

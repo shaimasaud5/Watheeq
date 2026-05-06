@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TranscriptChunk
+from .models import TranscriptChunk, ProcessingResult
 from preprocessing.models import Transcript
 
 
@@ -24,9 +24,9 @@ class TranscriptChunkInline(admin.TabularInline):
 
 
 class TranscriptWithChunksAdmin(admin.ModelAdmin):
-    list_display = ("meeting", "source", "created_at", "chunk_count")
+    list_display = ("meeting", "status", "source", "created_at", "chunk_count")
     readonly_fields = ("ordered_processed_json", "created_at")
-    fields = ("meeting", "source", "meeting_link", "ordered_processed_json", "created_at")
+    fields = ("meeting", "status", "source", "meeting_link", "ordered_processed_json", "created_at")
     inlines = [TranscriptChunkInline]
 
     def chunk_count(self, obj):
@@ -41,6 +41,13 @@ class TranscriptWithChunksAdmin(admin.ModelAdmin):
         formatted = json.dumps(obj.processed_json, indent=2, ensure_ascii=False)
         return format_html("<pre style='white-space: pre-wrap;'>{}</pre>", formatted)
     ordered_processed_json.short_description = "Processed JSON"
+
+
+@admin.register(ProcessingResult)
+class ProcessingResultAdmin(admin.ModelAdmin):
+    list_display = ("id", "transcript", "status", "created_at")
+    list_filter = ("status",)
+    search_fields = ("transcript__meeting__project__name",)
 
 
 admin.site.unregister(Transcript) if admin.site.is_registered(Transcript) else None

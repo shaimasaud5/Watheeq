@@ -1,7 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 
+from .models import Meeting
 from .serializers import CreateProjectSerializer
 from .services import request_recall_bot
 
@@ -14,32 +15,82 @@ class CreateProjectAPI(APIView):
     2. Sends the meeting link to Recall.ai so the bot joins the meeting
     """
 
-    # Temporarily disabled for testing — re-enable after frontend is ready
     permission_classes = [AllowAny]
 
     def post(self, request):
-        """
-        POST /api/projects/create/
-        Expects: project info + meeting setup fields from the form
-        Returns: project_id, meeting_id, document_id, doc_type
-        """
-
-        # 1. Pass incoming data to the serializer for validation
-        #    If validation fails, an error response is returned automatically
         serializer = CreateProjectSerializer(
             data=request.data,
             context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
 
-        # 2. Save validated data → creates Project, Meeting, Document in DB
         result = serializer.save()
 
-        # 3. Send the meeting link to Recall.ai so the bot joins the meeting
-        #    The bot will listen silently and return the transcript when done
         request_recall_bot(
             meeting_id=result["meeting_id"],
         )
 
-        # 4. Return the created IDs to the frontend
         return Response(result, status=201)
+
+
+class MeetingStatusAPI(APIView):
+    """
+    Returns the current meeting lifecycle status.
+    Used by the frontend polling to update the first progress bar.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request, meeting_id):
+        try:
+            meeting = Meeting.objects.get(id=meeting_id)
+        except Meeting.DoesNotExist:
+            return Response({"error": "Meeting not found"}, status=404)
+
+        return Response({
+            "meeting_id": meeting.id,
+            "status": meeting.status,
+        })
+    
+
+class PipelineStatusAPI(APIView):
+    """
+    Returns the status of each internal pipeline stage.
+    Used by the frontend polling to update the second progress bar.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request, meeting_id):
+        try:
+            meeting = Meeting.objects.get(id=meeting_id)
+        except Meeting.DoesNotExist:
+            return Response({"error": "Meeting not found"}, status=404)
+
+        transcript = getattr(meeting, "transcript", None)
+
+        preprocessing_status = transcript.status if transcript else "pending"
+
+        processing_status = "pending"
+        if transcript and hasattr(transcript, "processing_result"):
+            processing_status = transcript.processing_result.status
+
+        extraction_status = "pending"
+        generation_status = "DRAFT"
+
+        documents = meeting.project.documents.all()
+
+        for document in documents:
+            if hasattr(document, "extraction"):
+                extraction_status = document.extraction.status
+
+            if hasattr(document, "generated"):
+                generation_status = document.generated.status
+
+        return Response({
+            "meeting_id": meeting.id,
+            "preprocessing": preprocessing_status,
+            "processing": processing_status,
+            "extraction": extraction_status,
+            "generation": generation_status,
+        })

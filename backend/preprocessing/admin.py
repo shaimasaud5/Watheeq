@@ -11,9 +11,9 @@ class preprocessingAdmin(admin.ModelAdmin):
     Displays the processed JSON in a readable format.
     """
 
-    list_display = ("meeting", "source", "created_at")
+    list_display = ("meeting", "status", "source", "created_at")
     readonly_fields = ("ordered_processed_json", "created_at")
-    fields = ("meeting", "source", "meeting_link", "ordered_processed_json", "created_at")
+    fields = ("meeting", "status", "source", "meeting_link", "ordered_processed_json", "created_at")
 
     def ordered_processed_json(self, obj):
         """

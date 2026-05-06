@@ -186,33 +186,75 @@ def overview(request, project_id):
 @login_required(login_url='/login/')
 def documents(request, project_id):
     from project.models import Project, Document
-    project   = Project.objects.get(id=project_id, owner=request.user)
+    from generation.models import GeneratedDocument
+
+    project = Project.objects.get(id=project_id, owner=request.user)
     documents = Document.objects.filter(project=project)
+
+    docs_with_generated = []
+
+    for doc in documents:
+        generated = getattr(doc, "generated", None)
+
+        docs_with_generated.append({
+            "doc": doc,
+            "generated": generated,
+        })
+
     return render(request, 'frontend/pages/documents.html', {
-        'project':   project,
-        'documents': documents,
+        'project': project,
+        'documents': documents,  # لا نحذفها (نخلي القديم شغال)
+        'docs_with_generated': docs_with_generated,  # الجديد
     })
 
-
+# Updated processing view to pass meeting_id and document_id to the template
+# This is required for frontend polling:
+# - meeting_id → used for BAR 1 (meeting lifecycle progress)
+# - document_id → used for BAR 2 (AI pipeline progress)
 @login_required(login_url='/login/')
 def processing(request, project_id):
-    from project.models import Project
+    from project.models import Project, Document
+
     project = Project.objects.get(id=project_id, owner=request.user)
+    meeting = project.meeting
+    document = Document.objects.filter(project=project).first()
+
     return render(request, 'frontend/pages/processing.html', {
         'project': project,
+        'meeting': meeting,
+        'meeting_id': meeting.id,
+        'document': document,
+        'document_id': document.id if document else None,
     })
+
 
 
 @login_required(login_url='/login/')
 def generated_document(request, doc_id):
     from project.models import Document
     from generation.models import GeneratedDocument
-    document = Document.objects.get(id=doc_id, project__owner=request.user)
+
+    base_doc = Document.objects.get(id=doc_id, project__owner=request.user)
+    project = base_doc.project
+
     try:
-        gen_doc = GeneratedDocument.objects.get(document=document)
+        gen_doc = GeneratedDocument.objects.get(document=base_doc)
     except GeneratedDocument.DoesNotExist:
-        gen_doc = None
+        gen_doc = GeneratedDocument(
+            document=base_doc,
+            status="DRAFT",
+            content="",
+            meta={},
+        )
+
+    regen_count = int((gen_doc.meta or {}).get("regenerate_count", 0))
+    regen_remaining = max(0, 3 - regen_count)
+
     return render(request, 'frontend/pages/generated_document.html', {
-        'document': document,
-        'gen_doc':  gen_doc,
+        'base_doc': base_doc,
+        'doc': gen_doc,
+        'gen_doc': gen_doc,
+        'project': project,
+        'project_id': project.id,
+        'regen_remaining': regen_remaining,
     })
