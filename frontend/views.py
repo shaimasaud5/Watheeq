@@ -172,14 +172,22 @@ def search(request):
         'project_results': project_results,
         'document_results': document_results,
     })
+
 @login_required(login_url='/login/')
 def overview(request, project_id):
     from project.models import Project, Document
-    project   = Project.objects.get(id=project_id, owner=request.user)
+
+    project = Project.objects.get(id=project_id, owner=request.user)
     documents = Document.objects.filter(project=project)
+
+    has_brd = documents.filter(doc_type="BRD").exists()
+    has_mom = documents.filter(doc_type="MOM").exists()
+
     return render(request, 'frontend/pages/overview.html', {
-        'project':   project,
+        'project': project,
         'documents': documents,
+        'has_brd': has_brd,
+        'has_mom': has_mom,
     })
 
 
@@ -217,7 +225,7 @@ def processing(request, project_id):
 
     project = Project.objects.get(id=project_id, owner=request.user)
     meeting = project.meeting
-    document = Document.objects.filter(project=project).first()
+    document = Document.objects.filter(project=project).order_by("-id").first()
 
     return render(request, 'frontend/pages/processing.html', {
         'project': project,
@@ -258,3 +266,60 @@ def generated_document(request, doc_id):
         'project_id': project.id,
         'regen_remaining': regen_remaining,
     })
+
+@login_required(login_url='/login/')
+def generate_new_document(request, project_id):
+    from django.shortcuts import get_object_or_404, redirect
+    from django.contrib import messages
+    from project.models import Project
+    import requests
+
+    project = get_object_or_404(Project, id=project_id, owner=request.user)
+
+    if request.method != "POST":
+        return redirect("frontend:overview", project_id=project.id)
+
+    document_type = request.POST.get("document_type")
+
+    if document_type not in ["BRD", "MOM"]:
+        messages.error(request, "يرجى اختيار نوع الوثيقة.")
+        return redirect("frontend:overview", project_id=project.id)
+
+    if project.documents.filter(doc_type=document_type).exists():
+        messages.error(request, "هذا النوع من الوثائق موجود مسبقًا.")
+        return redirect("frontend:overview", project_id=project.id)
+
+    api_url = request.build_absolute_uri(
+        f"/api/generation/projects/{project.id}/generate-new-document/"
+    )
+
+    response = requests.post(
+        api_url,
+        json={"document_type": document_type},
+        timeout=None,
+    )
+
+    if response.status_code not in [200, 201]:
+        print("Generate new document error:", response.text)
+        return redirect("frontend:processing", project_id=project.id)
+
+    
+    data = response.json()
+    document_id = data.get("document_id")
+
+    if not document_id:
+        from project.models import Document
+
+        new_doc = Document.objects.filter(
+            project=project,
+            doc_type=document_type
+        ).order_by("-id").first()
+
+        if new_doc:
+            document_id = new_doc.id
+
+    if not document_id:
+        return redirect("frontend:documents", project_id=project.id)
+
+    return redirect("frontend:generated_document", doc_id=document_id)
+    

@@ -87,6 +87,7 @@ def extract_section(section_name: str, section_template, context: str, doc_type:
     if doc_type == "MOM":
         persona = "expert meeting minutes analyst extracting structured information from meeting transcripts"
         focus   = "Focus on: decisions, action items, attendees, agenda, discussion points."
+        section_guidance = {}
     else:
         persona = "expert business analyst extracting structured requirements from meeting transcripts"
         section_guidance = {

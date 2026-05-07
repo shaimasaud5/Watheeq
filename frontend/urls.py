@@ -17,4 +17,5 @@ urlpatterns = [
     path('projects/<int:project_id>/documents/', views.documents, name='documents'),
     path('projects/<int:project_id>/processing/', views.processing, name='processing'),
     path('documents/<int:doc_id>/', views.generated_document, name='generated_document'),
+    path("projects/<int:project_id>/generate-new-document/",views.generate_new_document,name="generate_new_document"),
 ]

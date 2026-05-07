@@ -159,64 +159,56 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
         </div>
       </div>
 
- {% if documents %}
-<div class="docs-grid">
-  {% for item in docs_with_generated %}
-  {% with doc=item.doc generated=item.generated %}
-  <a href="{% url 'frontend:generated_document' doc.id %}" class="doc-card">
-    <div class="doc-card-top">
-      <div class="doc-card-icon">
-        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      {% if documents %}
+      <div class="docs-grid">
+        {% for doc in documents %}
+        <a href="{% url 'frontend:generated_document' doc.id %}" class="doc-card">
+          <div class="doc-card-top">
+            <div class="doc-card-icon">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="doc-card-type">{{ doc.doc_type }}</div>
+            <div class="doc-card-proj">{{ project.name }}</div>
+            {% if doc.status == 'APPROVED' and doc.generated_file %}
+            <div class="dl-badge" style="margin-top:8px;">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              متاح للتحميل
+            </div>
+            {% endif %}
+          </div>
+          <div class="doc-card-footer">
+            <span class="doc-status {% if doc.status == 'APPROVED' %}s-approved{% elif doc.status == 'GENERATED' %}s-generated{% elif doc.status == 'EXTRACTED' %}s-extracted{% elif doc.status == 'FAILED' %}s-failed{% else %}s-draft{% endif %}">
+              {% if doc.status == 'APPROVED' %}معتمد{% elif doc.status == 'GENERATED' %}مُوَلَّد{% elif doc.status == 'EXTRACTED' %}مُستخرج{% elif doc.status == 'FAILED' %}فشل{% else %}مسودة{% endif %}
+            </span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="doc-card-date">{{ doc.created_at|date:"j M Y" }}</span>
+              <div class="doc-card-action"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
       </div>
-
-      <div class="doc-card-type">{{ doc.doc_type }}</div>
-      <div class="doc-card-proj">{{ project.name }}</div>
-
-      {% if generated and generated.status == 'APPROVED' and generated.generated_file %}
-      <div class="dl-badge" style="margin-top:8px;">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        متاح للتحميل
+      {% else %}
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <p>لا توجد مستندات في هذا المشروع بعد.</p>
       </div>
       {% endif %}
-    </div>
 
-    <div class="doc-card-footer">
-      <span class="doc-status 
-        {% if generated and generated.status == 'APPROVED' %}
-          s-approved
-        {% elif generated and generated.status == 'GENERATED' %}
-          s-generated
-        {% elif generated and generated.status == 'FAILED' %}
-          s-failed
-        {% else %}
-          s-draft
-        {% endif %}
-      ">
-        {% if generated and generated.status == 'APPROVED' %}
-          معتمد
-        {% elif generated and generated.status == 'GENERATED' %}
-          مُوَلَّد
-        {% elif generated and generated.status == 'FAILED' %}
-          فشل
-        {% else %}
-          مسودة
-        {% endif %}
-      </span>
-
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="doc-card-date">{{ doc.created_at|date:"j M Y" }}</span>
-        <div class="doc-card-action">
-          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      </div>
     </div>
-  </a>
-  {% endwith %}
-  {% endfor %}
+  </div>
 </div>
-{% else %}
-<div class="empty-state">
-  <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-  <p>لا توجد مستندات في هذا المشروع بعد.</p>
-</div>
-{% endif %}
+<script>
+function toggleDropdown(){
+  document.getElementById('dropdown').classList.toggle('show');
+  document.getElementById('chevron').classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.sb-bottom')){
+    document.getElementById('dropdown').classList.remove('show');
+    document.getElementById('chevron').classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>
