@@ -55,3 +55,7 @@ langchain>=0.2.0
 langchain-community
 langchain-ollama
 faiss-cpu
+
+gunicorn
+dj-database-url
+whitenoise
