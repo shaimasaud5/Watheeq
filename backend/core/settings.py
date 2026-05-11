@@ -152,11 +152,3 @@ REST_FRAMEWORK = {
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-
-INSTALLED_APPS += ['anymail']
-
-EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
-ANYMAIL = {
-    'RESEND_API_KEY': os.getenv('RESEND_API_KEY'),
-}
-DEFAULT_FROM_EMAIL = 'Watheeq <onboarding@resend.dev>'
