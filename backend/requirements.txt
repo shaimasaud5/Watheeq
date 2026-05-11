@@ -59,3 +59,5 @@ faiss-cpu
 gunicorn
 dj-database-url
 whitenoise
+
+django-anymail[resend]
