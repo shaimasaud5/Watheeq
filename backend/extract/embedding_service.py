@@ -1,20 +1,21 @@
 # extract/embedding_service.py
 # ─────────────────────────────
-# يولّد embedding لنص معين.
-# يستخدم نفس النموذج الذي استخدمته مهمة 2 (mxbai-embed-large)
-# لأن embeddings من نماذج مختلفة لا يمكن مقارنتها.
-
+# Generate embeddings for input text using Ollama.
+# Uses the same embedding model from Processing stage
+# to ensure embedding consistency across the pipeline.
 import requests
 
 OLLAMA_EMBED_URL = "http://ollama:11434/api/embeddings"
-MODEL_NAME       = "mxbai-embed-large"  # نفس مهمة 2
+MODEL_NAME       = "mxbai-embed-large"    # Same model used in Processing
 
 
 def generate_embedding(text: str) -> list:
     """
-    يولّد embedding لنص معين.
-    يُستخدم لتوليد embedding لاسم الفقرة (section_name)
-    عشان نقارنه بـ chunk embeddings المحفوظة من مهمة 2.
+    Generate embedding vector for a given text.
+
+    Used during Extraction stage to generate embeddings
+    for section names or queries, then compare them with
+    chunk embeddings generated earlier in Processing. 
     """
     payload = {
         "model":  MODEL_NAME,

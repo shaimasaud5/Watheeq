@@ -1,0 +1,402 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>المساعدة — وثيق</title>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+:root{
+  --ink:#1A2E4A;--blue:#1A5FAA;--bm:#2D7DD2;--bl:#EAF3FF;--sky:#D6EAFF;
+  --w:#FFFFFF;--paper:#F0F5FB;--rule:#C8DCF0;--muted:#5B7FA6;--dark:#0D1E33;--mid:#1A3050;
+  --display:'DM Serif Display',serif;--body:'Cairo',sans-serif;
+}
+
+body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height:100vh;margin:0;}
+.page{display:flex;min-height:100vh;}
+
+.sidebar{background:var(--dark);display:flex;flex-direction:column;width:260px;min-width:260px;flex-shrink:0;min-height:100vh;}
+.sb-logo{padding:1.6rem 1.8rem 1.4rem;border-bottom:1px solid rgba(255,255,255,0.07);}
+.sb-logo img{height:70px;width:auto;filter:invert(80%) sepia(20%) saturate(200%) hue-rotate(190deg) brightness(1.2);}
+
+.nav-items{flex:1;display:flex;flex-direction:column;gap:3px;padding:1.2rem 1rem;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;font-size:15px;color:rgba(255,255,255,0.45);cursor:pointer;text-decoration:none;transition:all 0.15s;}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.85);}
+.nav-item.active{background:rgba(45,125,210,0.2);color:var(--sky);border:1px solid rgba(45,125,210,0.3);}
+.nav-item svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0;}
+
+.sb-bottom{border-top:1px solid rgba(255,255,255,0.07);padding:1rem;position:relative;}
+.user-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;cursor:pointer;}
+.user-row:hover{background:rgba(255,255,255,0.05);}
+.avatar{width:42px;height:42px;border-radius:50%;border:2px solid rgba(45,125,210,0.5);overflow:hidden;flex-shrink:0;background:var(--mid);display:flex;align-items:center;justify-content:center;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.avatar-initials{font-size:15px;font-weight:700;color:var(--sky);}
+.user-info{flex:1;}
+.user-name{font-size:15px;font-weight:700;color:rgba(255,255,255,0.9);}
+.user-pos{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.chevron-icon{width:15px;height:15px;stroke:rgba(255,255,255,0.3);fill:none;stroke-width:2;transition:transform 0.2s;}
+.chevron-icon.open{transform:rotate(180deg);}
+
+.dropdown{position:absolute;bottom:80px;right:8px;left:8px;background:var(--mid);border:1px solid rgba(255,255,255,0.1);border-radius:10px;overflow:hidden;display:none;z-index:100;}
+.dropdown.show{display:block;}
+.dd-item{display:flex;align-items:center;gap:10px;padding:12px 16px;font-size:14px;color:rgba(255,255,255,0.6);cursor:pointer;text-decoration:none;}
+.dd-item:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.9);}
+.dd-item svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;}
+.dd-sep{height:1px;background:rgba(255,255,255,0.07);}
+.dd-logout{color:rgba(239,68,68,0.8)!important;}
+
+.main{flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--w);border-bottom:1px solid var(--rule);padding:1.1rem 2rem;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:40;}
+.topbar-title{font-size:17px;font-weight:700;color:var(--ink);}
+.back-btn{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;border:1px solid var(--rule);cursor:pointer;text-decoration:none;transition:border-color 0.2s;}
+.back-btn:hover{border-color:var(--bm);}
+.back-btn svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;}
+
+.content{padding:2rem;display:flex;flex-direction:column;gap:1.5rem;flex:1;}
+.help-card{background:var(--w);border:1px solid var(--rule);border-radius:16px;padding:1.6rem 1.8rem;}
+.help-hero-card{background:linear-gradient(135deg, var(--dark), var(--blue));border:none;}
+.help-hero-card .help-title{color:#fff;}
+.help-hero-card .help-sub{color:var(--sky);}
+.help-title{font-size:20px;font-weight:800;color:var(--ink);margin-bottom:6px;}
+.help-sub{font-size:14px;color:var(--muted);line-height:1.8;}
+.help-section-title{font-size:14px;font-weight:800;color:var(--ink);margin-bottom:1rem;}
+.help-steps{display:grid;gap:10px;}
+.help-step{display:flex;align-items:flex-start;gap:12px;padding:13px 14px;background:var(--paper);border:1px solid var(--rule);border-radius:12px;}
+.help-step-num{width:32px;height:32px;border-radius:50%;background:var(--bm);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
+.help-step h3{font-size:14px;color:var(--ink);margin-bottom:3px;}
+.help-step p{font-size:13px;color:var(--muted);line-height:1.7;}
+.how-pipeline-steps{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;position:relative;z-index:2;flex-wrap:nowrap;}
+.how-step{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;text-align:center;}
+.how-step-circle{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #3B82F6;margin-bottom:12px;transition:all .25s ease;}
+.how-step-circle svg{width:22px;height:22px;stroke:#3B82F6;fill:none;stroke-width:2;}
+.how-step-num{font-size:11px;font-weight:700;color:#3B82F6;margin-bottom:4px;}
+.how-step h4{font-size:14px;font-weight:700;color:#111827;margin-bottom:6px;}
+.how-step p{font-size:11px;line-height:1.7;color:#6B7280;max-width:150px;}
+.how-step.done .how-step-circle{background:#EEF4FF;}
+.how-step.active .how-step-circle{background:#EEF4FF;box-shadow:0 0 0 6px rgba(59,130,246,.08);}
+.how-pipeline-wrap{position:relative;margin-top:30px;}
+.how-pipeline-line{position:absolute;top:26px;right:6%;left:6%;height:2px;background:#DCE7F9;z-index:1;}
+.how-pipeline-fill{position:absolute;top:26px;right:6%;width:58%;height:2px;background:#3B82F6;z-index:1;}
+
+.faq-item{border:1px solid var(--rule);border-radius:12px;overflow:hidden;background:var(--w);margin-bottom:10px;}
+.faq-question{width:100%;border:none;background:var(--w);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;color:var(--ink);font-family:var(--body);font-size:14px;font-weight:700;text-align:right;}
+.faq-answer{display:none;padding:0 16px 14px;color:var(--muted);font-size:13px;line-height:1.8;}
+.faq-item.active .faq-answer{display:block;}
+.plus{font-size:20px;color:var(--bm);transition:0.2s;}
+.faq-item.active .plus{transform:rotate(45deg);}
+
+.help-note{background:var(--bl);border:1px solid var(--rule);border-radius:12px;padding:14px 16px;font-size:13px;color:var(--blue);font-weight:700;line-height:1.8;}
+
+@media(max-width:900px){
+  .how-pipeline-line,
+  .how-pipeline-fill{display:none;}
+  .how-pipeline-steps{grid-template-columns:1fr;gap:12px;}
+  .how-step{display:flex;align-items:center;text-align:right;gap:12px;background:var(--paper);border:1px solid var(--rule);border-radius:12px;padding:12px;}
+  .how-step-circle{margin:0;width:44px;height:44px;flex-shrink:0;}
+  .how-step p{max-width:none;margin:0;}
+}
+
+@media(max-width:700px){
+  .sidebar{width:220px;min-width:220px;}
+  .content{padding:1.2rem;}
+}
+</style>
+</head>
+
+<body>
+<div class="page">
+
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <img src="{% static 'img/logo.png' %}" alt="وثيق"/>
+    </div>
+
+    <nav class="nav-items">
+      <a href="{% url 'frontend:home' %}" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        الصفحة الرئيسية
+      </a>
+
+      <a href="{% url 'frontend:search' %}" class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        البحث
+      </a>
+
+      <a href="{% url 'frontend:projects' %}" class="nav-item">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        المشاريع
+      </a>
+
+      <a href="{% url 'frontend:help' %}" class="nav-item active">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        المساعدة
+      </a>
+    </nav>
+
+    <div class="sb-bottom">
+      <div class="user-row" onclick="toggleDropdown()">
+        <div class="avatar">
+          {% if request.user.gender == 'F' %}
+            <img src="{% static 'img/avatar_female.png' %}" alt=""/>
+          {% elif request.user.gender == 'M' %}
+            <img src="{% static 'img/avatar_male.png' %}" alt=""/>
+          {% else %}
+            <div class="avatar-initials">{{ request.user.username|slice:":1"|upper }}</div>
+          {% endif %}
+        </div>
+
+        <div class="user-info">
+          <div class="user-name">{{ request.user.username }}</div>
+          <div class="user-pos">{{ request.user.position|default:"مستخدم" }}</div>
+        </div>
+
+        <svg class="chevron-icon" id="chevron" viewBox="0 0 24 24">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
+
+      <div class="dropdown" id="dropdown">
+        <a href="{% url 'frontend:profile' %}" class="dd-item">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          الملف الشخصي
+        </a>
+
+        <div class="dd-sep"></div>
+
+        <a href="{% url 'frontend:logout' %}" class="dd-item dd-logout">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          تسجيل الخروج
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+
+    <div class="topbar">
+      <a href="{% url 'frontend:home' %}" class="back-btn">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <div class="topbar-title">المساعدة</div>
+    </div>
+
+    <div class="content">
+
+      <div class="help-card help-hero-card">
+        <div class="help-title">مركز المساعدة</div>
+        <div class="help-sub">
+          هنا تجدين شرحًا مبسطًا لطريقة استخدام وثيق، ومراحل معالجة الاجتماع، وحلولًا لأكثر المشاكل الشائعة.
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-section-title">كيف أستخدم وثيق؟</div>
+
+        <div class="help-steps">
+          <div class="help-step">
+            <div class="help-step-num">01</div>
+            <div>
+              <h3>إنشاء مشروع جديد</h3>
+              <p>أدخلي اسم المشروع وبيانات الاجتماع الأساسية.</p>
+            </div>
+          </div>
+
+          <div class="help-step">
+            <div class="help-step-num">02</div>
+            <div>
+              <h3>اختيار نوع الوثيقة</h3>
+              <p>اختاري نوع الوثيقة المطلوبة: BRD أو MOM.</p>
+            </div>
+          </div>
+
+          <div class="help-step">
+            <div class="help-step-num">03</div>
+            <div>
+              <h3>إضافة رابط الاجتماع</h3>
+              <p>ضعي رابط الاجتماع، ثم يبدأ وثيق بإرسال الوكيل للاجتماع.</p>
+            </div>
+          </div>
+
+          <div class="help-step">
+            <div class="help-step-num">04</div>
+            <div>
+              <h3>توليد الوثيقة</h3>
+              <p>بعد انتهاء المعالجة يتم إنشاء الوثيقة النهائية تلقائيًا.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-section-title">كيف يعمل وثيق؟</div>
+      
+        <div class="how-pipeline-wrap">
+          <div class="how-pipeline-line"></div>
+          <div class="how-pipeline-fill"></div>
+      
+          <div class="how-pipeline-steps">
+      
+            <div class="how-step done">
+              <div class="how-step-circle">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 8v4l3 3"/>
+                </svg>
+              </div>
+              <div>
+                <div class="how-step-num">01</div>
+                <h4>ابدأ اجتماعك</h4>
+                <p>وثيق ينضم تلقائيًا للاجتماع ويبدأ بالتسجيل.</p>
+              </div>
+            </div>
+      
+            <div class="how-step active">
+              <div class="how-step-circle">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/>
+                  <path d="M19 11a7 7 0 0 1-14 0"/>
+                  <line x1="12" y1="18" x2="12" y2="22"/>
+                  <line x1="8" y1="22" x2="16" y2="22"/>
+                </svg>
+              </div>
+              <div>
+                <div class="how-step-num">02</div>
+                <h4>تفريغ النص</h4>
+                <p>تحويل التسجيل الصوتي إلى نص.</p>
+              </div>
+            </div>
+      
+            <div class="how-step active">
+              <div class="how-step-circle">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                  <path d="M2 17l10 5 10-5"/>
+                  <path d="M2 12l10 5 10-5"/>
+                </svg>
+              </div>
+              <div>
+                <div class="how-step-num">03</div>
+                <h4>تتم المعالجة</h4>
+                <p>تنظيف النص وتقسيمه وتحويله إلى الإنجليزية.</p>
+              </div>
+            </div>
+      
+            <div class="how-step">
+              <div class="how-step-circle">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.35-4.35"/>
+                </svg>
+              </div>
+              <div>
+                <div class="how-step-num">04</div>
+                <h4>الاستخراج</h4>
+                <p>استخراج المعلومات المهمة من النص.</p>
+              </div>
+            </div>
+      
+            <div class="how-step">
+              <div class="how-step-circle">
+                <svg viewBox="0 0 24 24">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+              </div>
+              <div>
+                <div class="how-step-num">05</div>
+                <h4>التوليد</h4>
+                <p>توليد التقرير النهائي جاهزًا للاستخدام.</p>
+              </div>
+            </div>
+      
+          </div>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-section-title">الأسئلة الشائعة</div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            لماذا لم يدخل الوكيل إلى الاجتماع؟
+            <span class="plus">+</span>
+          </button>
+          <div class="faq-answer">
+            تأكدي من صحة رابط الاجتماع، وأن الاجتماع بدأ بالفعل، وأن المضيف قام بقبول دخول الوكيل.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            لماذا تستغرق المعالجة وقتًا طويلًا؟
+            <span class="plus">+</span>
+          </button>
+          <div class="faq-answer">
+            مدة المعالجة تعتمد على طول الاجتماع، وجودة الصوت، وحجم النص الناتج.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            ماذا أفعل إذا لم تعجبني الوثيقة؟
+            <span class="plus">+</span>
+          </button>
+          <div class="faq-answer">
+            يمكنك استخدام زر إعادة التوليد لتحسين الوثيقة، مع وجود عدد محدود من المحاولات.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            هل يدعم وثيق العربية والإنجليزية؟
+            <span class="plus">+</span>
+          </button>
+          <div class="faq-answer">
+            نعم، يدعم وثيق الاجتماعات العربية والإنجليزية والاجتماعات المختلطة بين اللغتين.
+          </div>
+        </div>
+      </div>
+
+      <div class="help-card">
+        <div class="help-section-title">نصائح للحصول على نتائج أفضل</div>
+        <div class="help-note">
+          يفضّل أن يكون الصوت واضحًا، والضوضاء قليلة، وأن يتحدث المشاركون بوضوح حتى تكون الوثيقة النهائية أدق.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleDropdown(){
+  const d=document.getElementById('dropdown');
+  const c=document.getElementById('chevron');
+  d.classList.toggle('show');
+  c.classList.toggle('open');
+}
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.sb-bottom')){
+    document.getElementById('dropdown').classList.remove('show');
+    document.getElementById('chevron').classList.remove('open');
+  }
+});
+
+const faqItems=document.querySelectorAll('.faq-item');
+faqItems.forEach(item=>{
+  const question=item.querySelector('.faq-question');
+  question.addEventListener('click',()=>{
+    item.classList.toggle('active');
+  });
+});
+</script>
+
+</body>
+</html>

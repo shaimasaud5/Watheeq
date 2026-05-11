@@ -204,10 +204,11 @@ class GenerateNewDocumentAfterProjectAPIView(APIView):
 
 class RegenerateDocumentAPIView(APIView):
     """
-    المستخدم يضغط Regenerate →
-    يعيد التوليد من نفس الـ schema بحد أقصى 3 مرات.
-    مهمة 3 لا تُعاد.
+    The user clicks Regenerate →
+    Regenerates the document from the same schema with a maximum of 3 attempts.
+    Task 3 cannot be regenerated.
     """
+    
     permission_classes = [AllowAny]
 
     def post(self, request, document_id):
@@ -224,7 +225,7 @@ class RegenerateDocumentAPIView(APIView):
                 status=400
             )
 
-        # كم مرة أعاد المستخدم التوليد
+        # Number of times the user regenerated the document
         count = int((gen_doc.meta or {}).get("regenerate_count", 0))
 
         if count >= MAX_REGENERATE_ATTEMPTS:
@@ -233,8 +234,8 @@ class RegenerateDocumentAPIView(APIView):
                 "message": f"Used all {MAX_REGENERATE_ATTEMPTS} attempts. Please approve.",
             }, status=400)
 
-        # ── معلومات غلاف الوثيقة ────────────────────────────────
-        # version يتغير مع كل regenerate: 1.0 → 1.1 → 1.2 → 1.3
+        # ── Document cover information ────────────────────────────────
+        # The version changes with each regenerate: 1.0 → 1.1 → 1.2 → 1.3
         new_count  = count + 1
         cover_meta = {
             "date":    document.created_at.strftime("%B %d, %Y"),
@@ -292,8 +293,8 @@ class RegenerateDocumentAPIView(APIView):
 
 class ApproveDocumentAPIView(APIView):
     """
-    المستخدم يضغط Approve →
-    ينقل الملف من media/pending/ إلى media/documents/ بشكل دائم.
+    The user clicks Approve →
+    Moves the file permanently from media/pending/ to media/documents/.
     """
     permission_classes = [AllowAny]
 
@@ -311,7 +312,7 @@ class ApproveDocumentAPIView(APIView):
         if not gen_doc.pending_file:
             return Response({"error": "No pending file."}, status=400)
 
-        # ننقل الملف من pending إلى documents بشكل دائم
+        # Move the file permanently from pending to documents
         final_name = f"{document.doc_type.lower()}_{document.id}.docx"
         with gen_doc.pending_file.open("rb") as f:
             gen_doc.generated_file.save(final_name, File(f), save=False)
@@ -328,3 +329,18 @@ class ApproveDocumentAPIView(APIView):
             "download_url": gen_doc.generated_file.url,
             "message":      "Document approved and saved.",
         })
+
+
+
+class DeleteDocumentAPIView(APIView):
+    """
+    Deletes a generated document and its associated files.
+    Only works if the document belongs to the requesting user's project.
+    """
+    permission_classes = [AllowAny]
+
+    def delete(self, request, document_id):
+        try:
+            document = Document.objects.get(id=document_id, project__owner=request.user)
+        except Document.DoesNotExist:
+            return Response({"error": "Document not found."}, status=404)

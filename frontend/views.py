@@ -1,8 +1,14 @@
-from django.shortcuts import render, redirect
+import requests
+from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect, render
+
 from .forms import SignupForm, LoginForm
+from generation.models import GeneratedDocument
+from project.models import Document, Meeting, Project
+from project.services import request_recall_bot
+from generation.models import GeneratedDocument
 
 
 def signup(request):
@@ -14,11 +20,11 @@ def signup(request):
             return redirect('frontend:home')
     else:
         form = SignupForm()
+
     return render(request, 'frontend/auth/signup.html', {'form': form})
 
 
 def login_view(request):
-    from django.contrib.auth.forms import AuthenticationForm
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
@@ -27,6 +33,7 @@ def login_view(request):
             return redirect('frontend:home')
     else:
         form = LoginForm()
+
     return render(request, 'frontend/auth/login.html', {'form': form})
 
 
@@ -35,25 +42,39 @@ def logout_view(request):
     return redirect('frontend:login')
 
 
+def landing(request):
+    return render(request, 'frontend/pages/landing.html')
+
+
 @login_required(login_url='/login/')
 def home(request):
-    from project.models import Project
+
     try:
         recent_projects = Project.objects.filter(owner=request.user).order_by('-created_at')[:3]
+        total_projects = Project.objects.filter(owner=request.user).count()
+        pending_approval = GeneratedDocument.objects.filter(
+            document__project__owner=request.user,
+            status='GENERATED'
+        ).count()
+        total_approved = GeneratedDocument.objects.filter(
+            document__project__owner=request.user,
+            status='APPROVED'
+        ).count()
     except Exception:
         recent_projects = []
+        total_projects = 0
+        pending_approval = 0
+        total_approved = 0
     return render(request, 'frontend/pages/home.html', {
-        'recent_projects': recent_projects
+        'recent_projects': recent_projects,
+        'total_projects': total_projects,
+        'pending_approval': pending_approval,
+        'total_approved': total_approved,
     })
-
 
 @login_required(login_url='/login/')
 def projects(request):
-    from project.models import Project
-    all_projects = Project.objects.filter(owner=request.user).order_by('-created_at')
-    return render(request, 'frontend/pages/projects.html', {
-        'projects': all_projects
-    })
+    return render(request, 'frontend/pages/projects.html')
 
 
 @login_required(login_url='/login/')
@@ -82,33 +103,27 @@ def profile(request):
 
 @login_required(login_url='/login/')
 def create_project(request):
-    from project.models import Project, Meeting, Document
     error = None
 
     if request.method == 'POST':
-        # بيانات المشروع
-        name         = request.POST.get('name', '').strip()
-        client       = request.POST.get('client', '').strip()
-        manager      = request.POST.get('manager', '').strip()
-        domain       = request.POST.get('domain', '').strip()
+        name = request.POST.get('name', '').strip()
+        client = request.POST.get('client', '').strip()
+        manager = request.POST.get('manager', '').strip()
+        domain = request.POST.get('domain', '').strip()
         project_type = request.POST.get('project_type', '').strip()
-        target_user  = request.POST.get('target_user', '').strip()
-        doc_type     = request.POST.get('doc_type', 'BRD')
+        target_user = request.POST.get('target_user', '').strip()
+        doc_type = request.POST.get('doc_type', 'BRD')
 
-        # بيانات الاجتماع
         meeting_title = request.POST.get('meeting_title', '').strip()
-        platform      = request.POST.get('platform', '').strip()
-        meeting_link  = request.POST.get('meeting_link', '').strip()
+        platform = request.POST.get('platform', '').strip()
+        meeting_link = request.POST.get('meeting_link', '').strip()
 
-        # ملف القالب
         template_file = request.FILES.get('template_file')
 
-        # التحقق من الحقول المطلوبة
         if not all([name, client, manager, meeting_title, platform, meeting_link]):
             error = 'يرجى تعبئة جميع الحقول المطلوبة.'
         else:
             try:
-                # إنشاء المشروع
                 project = Project.objects.create(
                     owner=request.user,
                     name=name,
@@ -119,7 +134,6 @@ def create_project(request):
                     target_user=target_user,
                 )
 
-                # إنشاء الاجتماع
                 meeting = Meeting.objects.create(
                     project=project,
                     title=meeting_title,
@@ -127,34 +141,31 @@ def create_project(request):
                     meeting_link=meeting_link,
                 )
 
-                # إنشاء المستند مع القالب
-                document = Document.objects.create(
+                Document.objects.create(
                     project=project,
                     doc_type=doc_type,
                     template_file=template_file,
                 )
-                from project.services import request_recall_bot
+
                 request_recall_bot(meeting_id=meeting.id)
 
                 messages.success(request, 'تم إنشاء المشروع بنجاح!')
-                return redirect('frontend:processing', project_id=project.id)  # ← غيّري هذا
-            
+                return redirect('frontend:processing', project_id=project.id)
+
             except Exception as e:
                 error = f'حدث خطأ أثناء إنشاء المشروع: {str(e)}'
 
-    return render(request, 'frontend/pages/create_project.html', {'error': error})
-
-
-def landing(request):
-    return render(request, 'frontend/pages/landing.html')
+    return render(request, 'frontend/pages/create_project.html', {
+        'error': error
+    })
 
 
 @login_required(login_url='/login/')
 def search(request):
-    from project.models import Project, Document
     query = request.GET.get('q', '').strip()
     project_results = []
     document_results = []
+
     if query:
         project_results = Project.objects.filter(
             owner=request.user,
@@ -162,8 +173,7 @@ def search(request):
         ).order_by('-created_at')
 
         document_results = Document.objects.filter(
-            project__owner=request.user
-        ).filter(
+            project__owner=request.user,
             project__name__icontains=query
         ).order_by('-created_at')
 
@@ -173,10 +183,9 @@ def search(request):
         'document_results': document_results,
     })
 
+
 @login_required(login_url='/login/')
 def overview(request, project_id):
-    from project.models import Project, Document
-
     project = Project.objects.get(id=project_id, owner=request.user)
     documents = Document.objects.filter(project=project)
 
@@ -193,9 +202,6 @@ def overview(request, project_id):
 
 @login_required(login_url='/login/')
 def documents(request, project_id):
-    from project.models import Project, Document
-    from generation.models import GeneratedDocument
-
     project = Project.objects.get(id=project_id, owner=request.user)
     documents = Document.objects.filter(project=project)
 
@@ -211,18 +217,13 @@ def documents(request, project_id):
 
     return render(request, 'frontend/pages/documents.html', {
         'project': project,
-        'documents': documents,  # لا نحذفها (نخلي القديم شغال)
-        'docs_with_generated': docs_with_generated,  # الجديد
+        'documents': documents,
+        'docs_with_generated': docs_with_generated,
     })
 
-# Updated processing view to pass meeting_id and document_id to the template
-# This is required for frontend polling:
-# - meeting_id → used for BAR 1 (meeting lifecycle progress)
-# - document_id → used for BAR 2 (AI pipeline progress)
+
 @login_required(login_url='/login/')
 def processing(request, project_id):
-    from project.models import Project, Document
-
     project = Project.objects.get(id=project_id, owner=request.user)
     meeting = project.meeting
     document = Document.objects.filter(project=project).order_by("-id").first()
@@ -236,12 +237,8 @@ def processing(request, project_id):
     })
 
 
-
 @login_required(login_url='/login/')
 def generated_document(request, doc_id):
-    from project.models import Document
-    from generation.models import GeneratedDocument
-
     base_doc = Document.objects.get(id=doc_id, project__owner=request.user)
     project = base_doc.project
 
@@ -267,13 +264,9 @@ def generated_document(request, doc_id):
         'regen_remaining': regen_remaining,
     })
 
+
 @login_required(login_url='/login/')
 def generate_new_document(request, project_id):
-    from django.shortcuts import get_object_or_404, redirect
-    from django.contrib import messages
-    from project.models import Project
-    import requests
-
     project = get_object_or_404(Project, id=project_id, owner=request.user)
 
     if request.method != "POST":
@@ -303,13 +296,10 @@ def generate_new_document(request, project_id):
         print("Generate new document error:", response.text)
         return redirect("frontend:processing", project_id=project.id)
 
-    
     data = response.json()
     document_id = data.get("document_id")
 
     if not document_id:
-        from project.models import Document
-
         new_doc = Document.objects.filter(
             project=project,
             doc_type=document_type
@@ -322,4 +312,7 @@ def generate_new_document(request, project_id):
         return redirect("frontend:documents", project_id=project.id)
 
     return redirect("frontend:generated_document", doc_id=document_id)
-    
+
+
+def help_page(request):
+    return render(request, 'frontend/pages/help.html')

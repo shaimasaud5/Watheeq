@@ -1,9 +1,8 @@
 # generation/services/orchestrator.py
 # ─────────────────────────────────────
-# يرسل السكيما كاملة للـ LLM في call واحد.
-# النموذج يرى كل السياق ويكتب الوثيقة بالكامل.
-# بعد الرد: نفككه → نتحقق من الأقسام → نبني .docx
-
+# Sends the complete schema to the LLM in a single call.
+# The model sees the full context and generates the full document.
+# After receiving the response .docx : parse it → validate sections → build the .docx file
 import os
 import re
 import time
@@ -21,8 +20,8 @@ class GenerationError(Exception):
     pass
 
 
-# ── الأقسام المتوقعة لكل نوع وثيقة ─────────────────────────
-# الترتيب هنا هو ترتيب الظهور في الوثيقة النهائية
+# ── Expected sections for each document type ─────────────────────────
+# The order here defines the order of appearance in the final document
 BRD_SECTIONS = [
     "executive_summary",
     "business_drivers",
@@ -47,22 +46,23 @@ MOM_SECTIONS = [
     "notes",
 ]
 
-
 # ═══════════════════════════════════════════════════════════════
-# تفكيك رد النموذج
+# Parse model response
 # ═══════════════════════════════════════════════════════════════
 
 def _parse_llm_response(response: str) -> Dict[str, Any]:
     """
-    يفكك رد النموذج إلى dict منظم.
+    Parse the model response into a structured dictionary.
 
-    الرد يأتي بهذا الشكل:
+    The response is expected in the following format:
+
         [SECTION: executive_summary]
         [FIELD: problem]
-        النص هنا...
+        Text content here...
+
         [FIELD: expected_benefits]
-        - نقطة 1
-        - نقطة 2
+        - Point 1
+        - Point 2
 
         [SECTION: stakeholders]
         - stakeholder 1
@@ -75,26 +75,36 @@ def _parse_llm_response(response: str) -> Dict[str, Any]:
         Description: ...
         ---
 
-    يرجع:
+    Returns:
+
         {
             "executive_summary": {
-                "problem": "النص...",
-                "expected_benefits": ["نقطة 1", "نقطة 2"]
+                "problem": "text...",
+                "expected_benefits": ["Point 1", "Point 2"]
             },
-            "stakeholders": ["stakeholder 1", "stakeholder 2"],
+
+            "stakeholders": [
+                "stakeholder 1",
+                "stakeholder 2"
+            ],
+
             "functional_requirements": [
-                {"title": "...", "priority": "High", "description": "..."}
+                {
+                    "title": "...",
+                    "priority": "High",
+                    "description": "..."
+                }
             ]
         }
     """
     result = {}
 
-    # نقسم الرد على [SECTION: ...] tags
+    # Split the response using [SECTION: ...] tags
     section_pattern = re.compile(r'\[SECTION:\s*(\w+)\]', re.IGNORECASE)
     section_splits   = section_pattern.split(response)
 
     # section_splits = [text_before, section_name, section_content, section_name, ...]
-    # نتجاهل أول عنصر (نص قبل أول section)
+    # Ignore the first item because it is text before the first section
     i = 1
     while i < len(section_splits) - 1:
         section_name    = section_splits[i].strip().lower()
@@ -107,39 +117,39 @@ def _parse_llm_response(response: str) -> Dict[str, Any]:
 
 def _parse_section(section_name: str, content: str) -> Any:
     """
-    يفكك محتوى قسم واحد.
+    Parse the content of a single section.
 
-    ثلاثة أنواع ممكنة:
-    1. قسم فيه FIELD tags → dict
-    2. قسم فيه ITEM tags → list of dicts
-    3. قسم فيه bullet points فقط → list of strings
+    Possible section formats:
+    1. Section with FIELD tags → dict
+    2. Section with ITEM tags → list of dictionaries
+    3. Section with bullet points only → list of strings
     """
     content = content.strip()
     if not content:
         return None
 
-    # النوع 1: قسم فيه [FIELD: ...] tags
+    # Type 1: section with [FIELD: ...] tags
     if '[FIELD:' in content:
         return _parse_field_section(content)
 
-    # النوع 2: قسم فيه [ITEM] tags
+    # Type 2: section with [ITEM] tags
     if '[ITEM]' in content:
         return _parse_item_section(content)
 
-    # النوع 3: قائمة bullet points أو نص عادي
+    # Type 2: section with [ITEM] tags
     return _parse_simple_section(content)
 
 
 def _parse_field_section(content: str) -> Dict[str, Any]:
     """
-    يفكك قسماً فيه [FIELD: ...] tags.
-    مثال: executive_summary, business_drivers, project_scope
+    Parse a section that contains [FIELD: ...] tags.
+    Example: executive_summary, business_drivers, project_scope
     """
     result = {}
     field_pattern = re.compile(r'\[FIELD:\s*(\w+)\]', re.IGNORECASE)
     field_splits   = field_pattern.split(content)
 
-    # نتجاهل أول عنصر
+    # Ignore the first item
     i = 1
     while i < len(field_splits) - 1:
         field_name    = field_splits[i].strip().lower()
@@ -150,7 +160,7 @@ def _parse_field_section(content: str) -> Dict[str, Any]:
             i += 2
             continue
 
-        # لو المحتوى قائمة bullet points
+        # If the field content is a bullet list
         if field_content.startswith('-'):
             result[field_name] = _parse_bullets(field_content)
         else:
@@ -163,12 +173,12 @@ def _parse_field_section(content: str) -> Dict[str, Any]:
 
 def _parse_item_section(content: str) -> List[Dict[str, Any]]:
     """
-    يفكك قسماً فيه [ITEM] tags.
-    مثال: functional_requirements, risk_analysis, action_items, glossary
+    Parse a section that contains [ITEM] tags.
+    Example: functional_requirements, risk_analysis, action_items, glossary
     """
     items = []
 
-    # نقسم على [ITEM] ثم على --- بين العناصر
+    # Split by [ITEM], then clean separators between items
     raw_items = re.split(r'\[ITEM\]', content)
 
     for raw_item in raw_items:
@@ -176,13 +186,13 @@ def _parse_item_section(content: str) -> List[Dict[str, Any]]:
         if not raw_item:
             continue
 
-        # نزيل --- الفاصل في نهاية كل عنصر
+        # Remove the --- separator at the end of each item
         raw_item = raw_item.rstrip('-').strip()
         if not raw_item:
             continue
 
         item = {}
-        # كل سطر فيه "Key: Value"
+        # Each line should follow the format: "Key: Value"
         for line in raw_item.splitlines():
             line = line.strip()
             if not line:
@@ -202,9 +212,9 @@ def _parse_item_section(content: str) -> List[Dict[str, Any]]:
 
 def _parse_simple_section(content: str) -> Any:
     """
-    يفكك قسماً بسيطاً:
-    - لو يبدأ بـ "-" → قائمة bullet points
-    - غير ذلك → نص عادي
+    Parse a simple section:
+    - If it starts with "-" → bullet list
+    - Otherwise → plain text
     """
     if content.startswith('-'):
         return _parse_bullets(content)
@@ -212,7 +222,7 @@ def _parse_simple_section(content: str) -> Any:
 
 
 def _parse_bullets(content: str) -> List[str]:
-    """يستخرج قائمة bullet points من النص."""
+    """Extract bullet points from text."""
     bullets = []
     for line in content.splitlines():
         line = line.strip()
@@ -224,7 +234,7 @@ def _parse_bullets(content: str) -> List[str]:
 
 
 # ═══════════════════════════════════════════════════════════════
-# التحقق من الأقسام الناقصة
+# Validate Missing Sections
 # ═══════════════════════════════════════════════════════════════
 
 def _get_missing_sections(
@@ -233,22 +243,22 @@ def _get_missing_sections(
     doc_type:     str,
 ) -> List[str]:
     """
-    يتحقق من الأقسام الناقصة في رد النموذج.
+    Checks for missing sections in the model response.
 
-    يعتبر القسم "ناقصاً" فقط لو:
-    - موجود في السكيما الأصلية وفيه بيانات
-    - غير موجود في رد النموذج أو قيمته None
+    A section is considered "missing" only if:
+    - It exists in the original schema and contains data
+    - It is missing from the model response or its value is None
     """
     expected = BRD_SECTIONS if doc_type == "BRD" else MOM_SECTIONS
     missing  = []
 
     for section in expected:
-        # لو القسم في السكيما فارغ → طبيعي أن يغيب
+        # If the section is empty in the schema → it is normal for it to be absent
         schema_value = filled_schema.get(section)
         if _is_empty(schema_value):
             continue
 
-        # لو القسم غائب من رد النموذج → ناقص
+        # If the section is absent from the model response → it is missing
         if section not in parsed or _is_empty(parsed.get(section)):
             missing.append(section)
 
@@ -256,7 +266,7 @@ def _get_missing_sections(
 
 
 def _is_empty(value: Any) -> bool:
-    """يتحقق من كل حالات الفراغ."""
+    """Checks all empty-value cases."""
     if value is None:
         return True
     if isinstance(value, str) and value.strip().lower() in ("", "null", "none", "n/a", "-"):
@@ -272,8 +282,8 @@ def _fetch_missing_section(
     doc_type:      str,
 ) -> Any:
     """
-    يطلب من النموذج قسماً واحداً ناقصاً في call منفصل صغير.
-    يُستخدم فقط لو التحقق اكتشف قسماً ناقصاً.
+    Requests one missing section from the model in a separate small call.
+    Used only when validation detects a missing section.
     """
     import json
     label       = key_to_label(section_name)
@@ -299,7 +309,7 @@ Output:"""
 
 
 # ═══════════════════════════════════════════════════════════════
-# دالة التوليد الرئيسية
+# Main Generation Function
 # ═══════════════════════════════════════════════════════════════
 
 def _run_generation(
@@ -311,19 +321,19 @@ def _run_generation(
     cover_meta:    Dict[str, str] = None,
 ) -> Tuple[str, str, Dict[str, Any]]:
     """
-    الخطوات:
-    1. يرسل السكيما كاملة للـ LLM في call واحد
-    2. يفكك الرد
-    3. يتحقق من الأقسام الناقصة ويطلبها
-    4. يبني .docx
-    5. يحفظه في media/
+    Steps:
+    1. Sends the full schema to the LLM in a single call
+    2. Parses the response
+    3. Checks missing sections and fetches them
+    4. Builds the .docx file
+    5. Saves it in media/
     """
     if not isinstance(filled_schema, dict) or not filled_schema:
         raise GenerationError("filled_schema must be a non-empty JSON object.")
 
     start = time.time()
 
-    # ── الخطوة 1: call واحد للـ LLM ─────────────────────────────
+    # ── Step 1: Single call to the LLM ───────────────────
     print(f"[Generation] Sending full schema to LLM — single call...")
     if doc_type == "BRD":
         prompt = build_brd_prompt(filled_schema)
@@ -332,11 +342,11 @@ def _run_generation(
 
     raw_response = generate_text(prompt)
 
-    # ── الخطوة 2: تفكيك الرد ────────────────────────────────────
+    # ── Step 2: Parse the response ──────────────────────────
     parsed = _parse_llm_response(raw_response)
     print(f"[Generation] Parsed sections: {list(parsed.keys())}")
 
-    # ── الخطوة 3: التحقق من الأقسام الناقصة ─────────────────────
+    # ── Step 3: Validate Missing Sections ─────────────────────
     missing = _get_missing_sections(parsed, filled_schema, doc_type)
 
     if missing:
@@ -348,7 +358,7 @@ def _run_generation(
                 parsed[section_name] = fetched
                 print(f"[Generation] Fetched: {section_name}")
 
-    # ── الخطوة 4: ترتيب الأقسام ─────────────────────────────────
+        # ── Step 4: Order sections ──────────────────────────
     section_order = BRD_SECTIONS if doc_type == "BRD" else MOM_SECTIONS
     ordered       = {}
     for section in section_order:
@@ -360,10 +370,10 @@ def _run_generation(
 
     elapsed = time.time() - start
 
-    # ── الخطوة 5: نص بسيط للحفظ في DB ──────────────────────────
+        # ── Step 5: Build plain text for DB storage ─────────────────
     generated_text = _build_plain_text(ordered, doc_type)
 
-    # ── الخطوة 6: حفظ .docx ─────────────────────────────────────
+        # ── Step 6: Save .docx file ────────────────────────────────
     rel_dir = (output_subdir or "pending").strip("/\\") or "pending"
     abs_dir = os.path.join(settings.MEDIA_ROOT, rel_dir)
     os.makedirs(abs_dir, exist_ok=True)
@@ -387,7 +397,7 @@ def _run_generation(
 
 
 def _build_plain_text(ordered: Dict[str, Any], doc_type: str) -> str:
-    """يبني نسخة نصية بسيطة للحفظ في قاعدة البيانات."""
+    """Builds a simple plain-text version to store in the database."""
     title = "Business Requirements Document" if doc_type == "BRD" else "Minutes of Meeting"
     lines = [f"{title}\n"]
 
@@ -417,7 +427,7 @@ def _build_plain_text(ordered: Dict[str, Any], doc_type: str) -> str:
 
 
 # ═══════════════════════════════════════════════════════════════
-# الدوال العامة — تُستدعى من signals.py و views.py
+# Public functions — called from signals.py and views.py
 # ═══════════════════════════════════════════════════════════════
 
 def generate_brd_from_schema(
@@ -428,8 +438,8 @@ def generate_brd_from_schema(
     output_subdir: str = "pending",
     cover_meta:    Dict[str, str] = None,
 ) -> Tuple[str, str, Dict[str, Any]]:
-    """يولّد وثيقة BRD."""
-    return _run_generation(
+        """Generates a BRD document."""
+        return _run_generation(
         filled_schema, document_id,
         doc_type="BRD", project_name=project_name,
         output_subdir=output_subdir, cover_meta=cover_meta,
@@ -444,8 +454,8 @@ def generate_mom_from_schema(
     output_subdir: str = "pending",
     cover_meta:    Dict[str, str] = None,
 ) -> Tuple[str, str, Dict[str, Any]]:
-    """يولّد وثيقة MOM."""
-    return _run_generation(
+        """Generates a MOM document."""
+        return _run_generation(
         filled_schema, document_id,
         doc_type="MOM", project_name=project_name,
         output_subdir=output_subdir, cover_meta=cover_meta,

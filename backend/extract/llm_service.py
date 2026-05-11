@@ -1,6 +1,6 @@
 # extract/llm_service.py
 # ───────────────────────
-# يرسل prompt لـ Ollama لاستخراج قيمة فقرة واحدة من السكيما.
+# Sends a prompt to the LLM to extract one schema section value.
 
 import json
 import re
@@ -15,7 +15,7 @@ OLLAMA_URL = "http://ollama:11434/api/generate"
 MODEL_NAME = "llama-3.3-70b-versatile"
 
 def _call_ollama(prompt: str) -> Optional[str]:
-    """يرسل prompt لـ Groq ويرجع النص الخام (نفس interface القديم)."""
+    """Send the prompt to Groq and return the raw text response."""
     try:
         client = Groq(api_key=os.getenv("GROQ_API_KEY_TASK3"))
         response = client.chat.completions.create(
@@ -28,34 +28,10 @@ def _call_ollama(prompt: str) -> Optional[str]:
     except Exception as e:
         print(f"GROQ ERROR: {e}")
         return None
-# ───────────────────────────────────────────────────────────────
-#def _call_ollama(prompt: str) -> Optional[str]:
-#    """يرسل prompt لـ Ollama ويرجع النص الخام."""
-#    payload = {
-#        "model":   MODEL_NAME,
-#        "prompt":  prompt,
-#        "stream":  False,
-#        "format":  "json",
-#        "options": {"temperature": 0},
-#    }
-#    try:
-#        resp = requests.post(OLLAMA_URL, json=payload, timeout=None)
-#        resp.raise_for_status()
-#        data = resp.json()
-#        for key in ("response", "text", "output", "result"):
-#            if data.get(key):
-#                val = data[key]
-#                if isinstance(val, (dict, list)):
-#                    return json.dumps(val, ensure_ascii=False)
-#                return str(val)
-#       return json.dumps(data, ensure_ascii=False)
-#    except Exception as e:
-#        print(f"OLLAMA ERROR: {e}")
-#        return None
 
 
 def _safe_parse(text: str) -> Optional[dict]:
-    """يحاول استخراج JSON من رد الـ LLM."""
+    """Try to extract and parse JSON from the LLM response."""
     if not text:
         return None
     text = text.strip()
@@ -74,45 +50,141 @@ def _safe_parse(text: str) -> Optional[dict]:
 
 def extract_section(section_name: str, section_template, context: str, doc_type: str = "BRD") -> Optional[dict]:
     """
-    يرسل للـ LLM:
-    - اسم الفقرة (section_name)
-    - الهيكل المطلوب (section_template)
-    - أقرب 3 chunks من الترانسكريبت (context)
+    Send the LLM the required extraction inputs:
+    - section name
+    - expected section structure (section_template)
+    - top 5 transcript chunks as context
 
-    يطلب منه ملء الفقرة من النص المعطى فقط.
-    يرجع dict بنفس هيكل section_template.
+    The LLM is instructed to fill the section using only the provided context.
+    Returns a dictionary matching the section_template structure.
     """
     template_str = json.dumps({section_name: section_template}, ensure_ascii=False, indent=2)
 
     if doc_type == "MOM":
         persona = "expert meeting minutes analyst extracting structured information from meeting transcripts"
-        focus   = "Focus on: decisions, action items, attendees, agenda, discussion points."
-        section_guidance = {}
+        section_guidance = {
+            "meeting_info": (
+                "meeting_title: The topic or name of the meeting. "
+                "date: The date the meeting took place. "
+                "time: The time the meeting started. "
+                "location: Physical location or platform (e.g. Zoom, Teams, in-person). "
+                "facilitator: The person who led or chaired the meeting."
+            ),
+            "attendees": (
+                "These are ONLY people who were PRESENT and SPEAKING in the meeting. "
+                "Do NOT include people who were merely mentioned or discussed during the meeting. "
+                "name: Full name if mentioned. "
+                "role: Their job title or role in the organization."
+            ),
+            "agenda": (
+                "The list of topics that were discussed in the meeting. "
+                "Extract each topic as a separate agenda item. "
+                "These should be high-level topics, not detailed discussions."
+            ),
+            "discussion_summary": (
+                "A summary of what was discussed, debated, or reviewed in the meeting. "
+                "Include disagreements and how they were resolved. "
+                "Use past tense. Do NOT include decisions or action items here."
+            ),
+            "decisions": (
+                "Outcomes that were agreed upon or resolved during the meeting. "
+                "Look for phrases like 'we agreed', 'it was decided', 'we will go with'. "
+                "Each decision should be a clear, standalone statement."
+            ),
+            "action_items": (
+                "Look for ANY commitment made by a participant, including informal phrases like "
+                "'I will prepare', 'I can write', 'let me contact', 'I will send', 'I will follow up'. "
+                "These are action items even if not stated formally. "
+                "task: What needs to be done, described clearly. "
+                "owner: The person who made the commitment. "
+                "due_date: Any date or timeframe mentioned. "
+                "status: Open by default."
+            ),
+            "next_meeting": (
+                "This refers to a FUTURE scheduled meeting. "
+                "Use future tense. Include date, time, and purpose if mentioned."
+            ),
+            "notes": (
+                "Any additional observations, reminders, or information mentioned "
+                "that does not fit in the other sections."
+            ),
+        }
+
     else:
         persona = "expert business analyst extracting structured requirements from meeting transcripts"
         section_guidance = {
+            "executive_summary": (
+                "company_description: Look for any mention of what the company does, its industry, size, or background. "
+                "This may appear as casual phrases like 'our company', 'we work in', 'our organization', 'The Company'. "
+                "problem: The main issue or pain point driving this meeting. "
+                "proposed_solution: The suggested fix or system. "
+                "expected_benefits: Positive outcomes mentioned."
+            ),
+            "business_drivers": (
+                "need_for_change: Why is the current situation no longer acceptable? "
+                "goals: What does the organization want to achieve? These are high-level objectives, not system features. "
+                "kpis: Any measurable targets or success metrics mentioned, such as percentages, numbers, or timeframes."
+            ),
             "project_scope": (
-                 "in_scope means HIGH-LEVEL SYSTEM COMPONENTS or MODULES (e.g. Order Tracking, Dashboard). "
-                 "Do NOT include functional requirements like 'creating a request' or 'managing inventory' — those belong in functional_requirements. "
-                 "out_of_scope means what will NOT be built (e.g. Mobile App)."
-         ),
-        "functional_requirements": (
-            "These are specific USER ACTIONS or SYSTEM BEHAVIORS (e.g. create a request, track order, send notification). "
-            "Do NOT include high-level components — those belong in project_scope."
-        ),
-        "stakeholders": (
-            "These are ROLES or GROUPS involved in the project (e.g. client, development team, management, users). "
-            "Do NOT include meeting authors or approvers — those belong in document_control."
-        ),
-        "glossary": (
-            "term = the technical English word. "
-            "definition = its meaning in context. "
-            "Example: term: 'order', definition: 'a customer request for products'. "
-            "Do NOT swap term and definition."
-        ),
-    }
+                "in_scope: HIGH-LEVEL SYSTEM COMPONENTS or MODULES only. "
+                "Do NOT include functional requirements here. "
+                "out_of_scope: ONLY items explicitly mentioned as excluded. Do NOT invent out-of-scope items. "
+                "assumptions: Things assumed to be true for the project to proceed. "
+                "constraints: Limitations such as budget, time, resources, or dependencies."
+            ),
+            "stakeholders": (
+                "These are ROLES or GROUPS involved in the project (e.g. IT team, management, end users). "
+                "Do NOT include individual names unless they represent a role. "
+                "Do NOT include meeting authors or approvers."
+            ),
+            "current_process": (
+                "overview: How things currently work before this project. "
+                "pain_points: Specific problems or frustrations with the current process mentioned in the meeting."
+            ),
+            "functional_requirements": (
+                "These are features the SYSTEM must provide to users — specific USER ACTIONS or SYSTEM BEHAVIORS. "
+                "Do NOT include high-level components (those belong in project_scope). "
+                "Do NOT include meeting actions or things people plan to do manually outside the system. "
+                "Each requirement must be one specific feature only."
+            ),
+            "non_functional_requirements": (
+                "performance: Speed, response time, or load requirements. "
+                "security: Access control, authentication, or data protection requirements. "
+                "usability: Ease of use, accessibility, or interface requirements. "
+                "Only include if explicitly mentioned in the transcript."
+            ),
+            "risk_analysis": (
+                "Look for any concern, worry, or potential obstacle mentioned. "
+                "Phrases like 'I am worried', 'what if', 'the risk is', 'this might delay' are indicators. "
+                "description: What could go wrong. "
+                "impact: How serious is it — High, Medium, or Low. "
+                "probability: How likely is it — High, Medium, or Low."
+            ),
+            "document_control": (
+                "authors: The people who created or are responsible for this document. "
+                "approval: The people who need to approve it. "
+                "version_history: Any mention of versions or dates."
+            ),
+            "glossary": (
+                "term: The technical English word or abbreviation. "
+                "definition: Its meaning in context. "
+                "Do NOT swap term and definition. "
+                "Include acronyms like ERP, KPI, API if mentioned and explained."
+            ),
+            "references": (
+                "Any documents, standards, or sources mentioned in the meeting."
+            ),
+            "appendix": (
+                "Any supplementary material, attachments, or additional information mentioned."
+            ),
+        }
+
     specific = section_guidance.get(section_name, "")
-    focus = f"Focus on: requirements, scope, stakeholders, risks, objectives. {specific}"
+    if doc_type == "MOM":
+        focus = f"Focus on: decisions, action items, attendees, agenda, discussion points. {specific}"
+    else:
+        focus = f"Focus on: requirements, scope, stakeholders, risks, objectives. {specific}"
+
     prompt = f"""You are an {persona}.
 
 TASK:

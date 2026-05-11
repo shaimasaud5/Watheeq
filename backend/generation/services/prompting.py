@@ -1,13 +1,13 @@
 # generation/services/prompting.py
 # ──────────────────────────────────
-# prompt واحد كبير يرسل السكيما كاملة للنموذج دفعة واحدة.
-# يتضمن معايير ISO + أمثلة few-shot + قواعد صارمة.
+# One large prompt sends the full schema to the model in a single batch.
+# Includes ISO standards, few-shot examples, and strict rules.
 
 from typing import Any
 
 
 def key_to_label(key: str) -> str:
-    """يحوّل snake_case إلى عنوان قابل للقراءة."""
+    """Converts snake_case into a readable title."""
     acronyms = {
         "kpis": "KPIs", "kpi": "KPI", "id": "ID",
         "brd": "BRD", "mom": "MoM", "api": "API",
@@ -18,7 +18,7 @@ def key_to_label(key: str) -> str:
 
 
 # ═══════════════════════════════════════════════════════════════
-# BRD — معايير ISO + أمثلة + قواعد
+# BRD — ISO standards, examples, and rules
 # ═══════════════════════════════════════════════════════════════
 
 _BRD_ISO_BLOCK = """
@@ -67,7 +67,7 @@ OUTPUT: In Scope:
 - Order Tracking will be developed as a core module, enabling users to monitor order status in real time.
 - A centralised Dashboard will be developed to provide management with a unified view of system activity.
 Out of Scope:
-- A mobile application falls outside the boundaries of this project and will not be developed.
+- Third-party integrations with external vendors fall outside the boundaries of this project and will not be developed in this phase.
 
 EXAMPLE 5 — BAD vs GOOD:
 DATA: the system must be secure
@@ -90,7 +90,7 @@ STRICT OUTPUT RULES:
 
 
 # ═══════════════════════════════════════════════════════════════
-# MOM — معايير ISO + أمثلة + قواعد
+# MOM — ISO standards, examples, and rules
 # ═══════════════════════════════════════════════════════════════
 
 _MOM_ISO_BLOCK = """
@@ -141,20 +141,20 @@ STRICT OUTPUT RULES:
 4. For TEXT fields: write in continuous prose — no bullet points.
 5. For LIST fields: each item starts with "- " on its own line.
 6. For ITEM fields: use the exact format shown (Task/Owner/Due Date/Status).
-7. Use past tense for all discussions and decisions.
+7. Use past tense for all discussions and decisions. Exception: for the [SECTION: next_meeting] section only, use future tense as it refers to a scheduled upcoming event.
 8. Write in formal business English throughout.
 9. End every prose section with a period.
 """.strip()
 
 
 # ═══════════════════════════════════════════════════════════════
-# الدوال الرئيسية
+# Main functions
 # ═══════════════════════════════════════════════════════════════
 
 def build_brd_prompt(filled_schema: dict) -> str:
     """
-    يبني prompt كامل لوثيقة BRD.
-    يرسل السكيما كاملة مع معايير ISO وأمثلة few-shot.
+    Builds a complete prompt for the BRD document.
+    Sends the full schema with ISO standards and few-shot examples.
     """
     import json
     schema_text = json.dumps(filled_schema, ensure_ascii=False, indent=2)
@@ -224,12 +224,12 @@ Prose here.
 [ITEM]
 Title: <specific feature name>
 Priority: <High, Medium, or Low>
-Description: <1-3 sentences — specific and measurable>
+Description: <1-3 sentences on ONE single line, no line breaks>
 ---
 [ITEM]
 Title: <next feature>
 Priority: <High, Medium, or Low>
-Description: <1-3 sentences>
+Description: <1-3 sentences on ONE single line, no line breaks>
 ---
 
 [SECTION: non_functional_requirements]
@@ -244,13 +244,13 @@ Description: <1-3 sentences>
 [ITEM]
 Risk: <risk name>
 Impact: <High, Medium, or Low>
-Description: <1-3 sentences>
+Description: <1-3 sentences on ONE single line, no line breaks>
 ---
 
 [SECTION: glossary]
 [ITEM]
 Term: <technical term>
-Definition: <its meaning>
+Description: <1-3 sentences on ONE single line, no line breaks>
 ---
 
 [SECTION: references]
@@ -272,8 +272,8 @@ Begin writing now:"""
 
 def build_mom_prompt(filled_schema: dict) -> str:
     """
-    يبني prompt كامل لوثيقة MOM.
-    يرسل السكيما كاملة مع معايير ISO وأمثلة few-shot.
+    Builds a complete prompt for the MOM document.
+    Sends the full schema with ISO standards and few-shot examples.
     """
     import json
     schema_text = json.dumps(filled_schema, ensure_ascii=False, indent=2)
@@ -315,7 +315,7 @@ Prose here (past tense, 1-8 sentences).
 
 [SECTION: action_items]
 [ITEM]
-Task: <task expanded 1-3 sentences>
+Task: <1-3 sentences on ONE single line, no line breaks>
 Owner: <owner>
 Due Date: <due date or "Not specified">
 Status: <status or "Open">

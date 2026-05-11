@@ -32,7 +32,7 @@ class TranscriptChunk(models.Model):
     def __str__(self):
         return f"Transcript {self.transcript_id} - Chunk {self.chunk_index} [{self.status}]"
     
-# حاله النظام لمرحله البروسسنق = تاسك تو
+# System status for the Processing stage = Task 2
 class ProcessingResult(models.Model):
 
     STATUS_PENDING = "pending"

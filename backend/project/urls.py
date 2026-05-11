@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CreateProjectAPI, MeetingStatusAPI, PipelineStatusAPI
+from .views import CreateProjectAPI, MeetingStatusAPI, PipelineStatusAPI, DeleteProjectAPI
 
 urlpatterns = [
     # Create new project + meeting + document and trigger Recall bot
@@ -12,4 +12,6 @@ urlpatterns = [
     # Return pipeline stages status (used for frontend progress bar polling - Bar 2)
     # Cleaning → Chunking & Translation → Extraction → Generation
     path("meetings/<int:meeting_id>/pipeline-status/", PipelineStatusAPI.as_view()),
+    #Delete a project and all related data
+    path("projects/<int:project_id>/delete/", DeleteProjectAPI.as_view()),
 ]

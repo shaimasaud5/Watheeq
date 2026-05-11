@@ -1,8 +1,11 @@
 # extract/views.py
 # ─────────────────
-# endpoint احتياطي فقط — الاستخراج الفعلي يشتغل تلقائياً
-# من processing/pipeline.py بعد اكتمال مهمة 2.
-# هذا الـ endpoint مفيد للاختبار اليدوي من Django admin أو Postman.
+# Backup endpoint used for manual testing only.
+# The actual extraction process runs automatically
+# from processing/pipeline.py after the Processing stage is completed.
+#
+# This endpoint is useful for manual testing
+# through Django Admin or Postman.
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -20,8 +23,10 @@ class ExtractAPIView(APIView):
     POST /api/extract/
     Body: { "document_id": 1 }
 
-    للاختبار اليدوي فقط.
-    في الإنتاج يُستدعى تلقائياً من processing/pipeline.py
+    Used for manual testing only.
+
+    In production, extraction is triggered automatically
+    from processing/pipeline.py
     """
     permission_classes = [AllowAny]
 
@@ -35,13 +40,13 @@ class ExtractAPIView(APIView):
         except Document.DoesNotExist:
             return Response({"error": f"Document {document_id} not found."}, status=404)
 
-        # نوصل للـ transcript عبر: document → project → meeting → transcript
+        # Access the transcript through: ( document → project → meeting → transcript )
         try:
             transcript = document.project.meeting.transcript
         except Exception:
             return Response({"error": "No transcript found for this project."}, status=400)
 
-        # نسحب الـ chunks المكتملة من مهمة 2
+        # Retrieve completed chunks from the Processing stage
         chunks = list(
             TranscriptChunk.objects.filter(
                 transcript=transcript,

@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from django.contrib.auth import views as auth_views
 
 app_name = 'frontend'
 
@@ -13,6 +14,7 @@ urlpatterns = [
     path('projects/', views.projects, name='projects'),
     path('projects/create/', views.create_project, name='create_project'),
     path('search/', views.search, name='search'),
+    path('help/', views.help_page, name='help'),
     path('projects/<int:project_id>/', views.overview, name='overview'),
     path('projects/<int:project_id>/documents/', views.documents, name='documents'),
     path('projects/<int:project_id>/processing/', views.processing, name='processing'),

@@ -110,40 +110,11 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
 .btn-regen:disabled{opacity:0.4;cursor:not-allowed;}
 .btn-regen svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;}
 
-
-
 /* SUCCESS REDIRECT MESSAGE AFTER GENERATION */
-.success-redirect-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(13,30,51,0.68);
-  z-index:210;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:1rem;
-  backdrop-filter:blur(4px);
-}
+.success-redirect-overlay{position:fixed;inset:0;background:rgba(13,30,51,0.68);z-index:210;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px);}
 .success-redirect-overlay.hidden{display:none!important;}
-.success-redirect-card{
-  background:var(--bm);
-  color:#fff;
-  padding:34px 46px;
-  border-radius:28px;
-  text-align:center;
-  font-weight:800;
-  font-size:20px;
-  line-height:1.8;
-  box-shadow:0 18px 45px rgba(0,0,0,0.25);
-  min-width:360px;
-}
-.success-redirect-card .small{
-  display:block;
-  font-size:13px;
-  font-weight:600;
-  opacity:.9;
-  margin-top:6px;
-}
+.success-redirect-card{background:var(--bm);color:#fff;padding:34px 46px;border-radius:28px;text-align:center;font-weight:800;font-size:20px;line-height:1.8;box-shadow:0 18px 45px rgba(0,0,0,0.25);min-width:360px;}
+.success-redirect-card .small{display:block;font-size:13px;font-weight:600;opacity:.9;margin-top:6px;}
 
 /* LOADING SPINNER INSIDE POPUP */
 .inline-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:1.5rem;color:var(--muted);font-size:14px;}
@@ -164,8 +135,9 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
       <a href="{% url 'frontend:projects' %}" class="nav-item">
         <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>المشاريع
       </a>
-      <a href="{% url 'frontend:create_project' %}" class="nav-item">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>مشروع جديد
+      <a href="{% url 'frontend:help' %}" class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        المساعدة
       </a>
     </nav>
     <div class="sb-bottom">
@@ -206,7 +178,7 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
   <div class="proc-header">
     <div class="proc-title">حالة الاجتماع</div>
     <div class="proc-sub">
-      متابعة البوت من لحظة انطلاقه إلى تفريغ النص.
+      متابعة الوكيل من لحظة انطلاقه إلى تفريغ النص.
     </div>
     <div class="proc-project">{{ project.name }}</div>
   </div>
@@ -228,8 +200,8 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
         <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
       </div>
       <div class="step-info">
-        <div class="step-name">انطلاق البوت إلى الاجتماع</div>
-        <div class="step-desc">تم إرسال البوت للانضمام إلى الاجتماع</div>
+        <div class="step-name">انطلاق الوكيل إلى الاجتماع</div>
+        <div class="step-desc">تم إرسال الوكيل للانضمام إلى الاجتماع</div>
       </div>
       <span class="step-status" id="meeting-step-1-status">في الانتظار</span>
     </div>
@@ -239,8 +211,8 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
         <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
       </div>
       <div class="step-info">
-        <div class="step-name">البوت حاضر في الاجتماع</div>
-        <div class="step-desc">البوت داخل الاجتماع ويقوم بالتسجيل</div>
+        <div class="step-name">الوكيل حاضر في الاجتماع</div>
+        <div class="step-desc">الوكيل داخل الاجتماع ويقوم بالتسجيل</div>
       </div>
       <span class="step-status" id="meeting-step-2-status">في الانتظار</span>
     </div>
@@ -262,7 +234,7 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
       </div>
       <div class="step-info">
         <div class="step-name">تفريغ النص</div>
-        <div class="step-desc">تحويل الصوت إلى نص</div>
+        <div class="step-desc">تحويل الصوت إلى نص </div>
       </div>
       <span class="step-status" id="meeting-step-4-status">في الانتظار</span>
     </div>
@@ -291,7 +263,7 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
         </div>
 
         <div class="steps">
-          <!-- المرحلة 1 -->
+          <!--  1 -->
           <div class="step" id="step-1">
             <div class="step-icon">
               <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
@@ -302,18 +274,18 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
             </div>
             <span class="step-status" id="step-1-status">في الانتظار</span>
           </div>
-          <!-- المرحلة 2 -->
+          <!-- 2 -->
           <div class="step" id="step-2">
             <div class="step-icon">
               <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
             </div>
             <div class="step-info">
-              <div class="step-name">التقسيم والترجمة</div>
-              <div class="step-desc">تقسيم النص وتحويله للإنجليزية</div>
+              <div class="step-name">التقطيع والترجمة</div>
+              <div class="step-desc">تقسيم النص وتحويله للإنجليزية </div>
             </div>
             <span class="step-status" id="step-2-status">في الانتظار</span>
           </div>
-          <!-- المرحلة 3 -->
+          <!-- 3 -->
           <div class="step" id="step-3">
             <div class="step-icon">
               <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -324,7 +296,7 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
             </div>
             <span class="step-status" id="step-3-status">في الانتظار</span>
           </div>
-          <!-- المرحلة 4 -->
+          <!-- 4 -->
           <div class="step" id="step-4">
             <div class="step-icon">
               <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
