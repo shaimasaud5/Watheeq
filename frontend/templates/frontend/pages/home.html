@@ -8,21 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --ink:#1A2E4A;
-  --blue:#1A5FAA;
-  --bm:#2D7DD2;
-  --bl:#EAF3FF;
-  --sky:#D6EAFF;
-  --w:#FFFFFF;
-  --paper:#F0F5FB;
-  --rule:#C8DCF0;
-  --muted:#5B7FA6;
-  --dark:#0D1E33;
-  --mid:#1A3050;
-  --display:'DM Serif Display',serif;
-  --body:'Cairo',sans-serif;
-}
+:root{--ink:#1A2E4A;--blue:#1A5FAA;--bm:#2D7DD2;--bl:#EAF3FF;--sky:#D6EAFF;--w:#FFFFFF;--paper:#F0F5FB;--rule:#C8DCF0;--muted:#5B7FA6;--dark:#0D1E33;--mid:#1A3050;--display:'DM Serif Display',serif;--body:'Cairo',sans-serif;}
 body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height:100vh;margin:0;}
 .page{display:flex;min-height:100vh;}
 .sidebar{background:var(--dark);display:flex;flex-direction:column;width:260px;min-width:260px;flex-shrink:0;min-height:100vh;}
@@ -109,7 +95,7 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
         <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         الصفحة الرئيسية
       </a>
-      <!-- تم تعديل href للبحث ✅ -->
+      <!-- Search page href updated successfully  -->
       <a href="{% url 'frontend:search' %}" class="nav-item">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         البحث
@@ -118,11 +104,7 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
         <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         المشاريع
       </a>
-      <a href="{% url 'frontend:create_project' %}" class="nav-item">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        مشروع جديد
-      </a>
-      <a href="#" class="nav-item">
+      <a href="{% url 'frontend:help' %}" class="nav-item">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         المساعدة
       </a>
@@ -189,11 +171,11 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
           <div class="r-list">
             {% if recent_projects %}
               {% for project in recent_projects %}
-              <a href="#" class="r-item">
+              <a href="{% url 'frontend:overview' project.id %}" class="r-item">
                 <div class="r-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
                 <div style="flex:1;">
                   <div class="r-name">{{ project.name }}</div>
-                  <!-- تم تعديل updated_at → created_at ✅ -->
+                  <!-- updated_at field replaced with created_at  -->
                   <div class="r-date">{{ project.created_at|date:"j M Y" }}</div>
                 </div>
                 <span class="r-badge bp">نشط</span>
@@ -210,37 +192,52 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
 
         <div class="section-card">
           <div class="card-head">
-            <div class="card-title">الاجتمـاعـات المجدولـة</div>
+            <div class="card-title">ملخـص التقدّم</div>
           </div>
+        
           <div class="up-list">
+        
             <div class="up-item">
-              <div class="up-time">١٠:٠٠ ص</div>
+              <div class="up-time">{{ total_projects }}</div>
+        
               <div class="up-info">
-                <div class="up-name">اجتمـاع تحديـد نطـاق المشـروع</div>
-                <div class="up-meta">اليوم، 10:00 ص.</div>
+                <div class="up-name">إجمالـي المشـاريع</div>
+                <div class="up-meta">
+                  عدد المشاريع التي قمت بإنشائها داخل وثيق.
+                </div>
               </div>
+        
+              <div class="up-dot ud-p"></div>
             </div>
+        
             <div class="up-item">
-              <div class="up-time">٢:٠٠ م</div>
+              <div class="up-time">{{ pending_approval }}</div>
+        
               <div class="up-info">
-                <div class="up-name">اجتمـاع تحـليل المتطلبـات</div>
-                <div class="up-meta">اليوم، 3:00 م.</div>
+                <div class="up-name">وثائـق بانتظـار الاعتمـاد</div>
+                <div class="up-meta">
+                  مستندات تم توليدها وتنتظر الموافقة النهائية.
+                </div>
               </div>
+        
+              <div class="up-dot ud-b"></div>
             </div>
+        
             <div class="up-item">
-              <div class="up-time">١١:٣٠ ص</div>
+              <div class="up-time">{{ total_approved }}</div>
+        
               <div class="up-info">
-                <div class="up-name">اعتمـاد وثيقـة BRD</div>
-                <div class="up-meta">غداً، 12:00 م.</div>
+                <div class="up-name">الوثائـق المعتمـدة</div>
+                <div class="up-meta">
+                  المستندات التي تم اعتمادها بنجاح.
+                </div>
               </div>
+        
+              <div class="up-dot ud-g"></div>
             </div>
+        
           </div>
         </div>
-
-      </div>
-    </div>
-  </div>
-
 </div>
 
 <script>

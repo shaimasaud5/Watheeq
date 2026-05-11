@@ -16,11 +16,8 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# API key used to authenticate requests with Recall platform (loaded from environment variables)
+# Recall API key loaded from environment variables
 RECALL_API_KEY = os.getenv("RECALL_API_KEY")
-
-
 
 
 
@@ -50,7 +47,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'XX',
     'accounts',
     'project',
     'preprocessing',
@@ -75,7 +71,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'frontend' / 'templates'],  # ← التعديل هنا
+        'DIRS': [BASE_DIR / 'frontend' / 'templates'],  # Frontend templates path
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -90,7 +86,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 # Custom User Model
-AUTH_USER_MODEL = 'accounts.User'  # ← مضاف
+AUTH_USER_MODEL = 'accounts.User' 
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

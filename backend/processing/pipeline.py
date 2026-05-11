@@ -51,7 +51,7 @@ def run_processing_pipeline(transcript: Transcript):
             print("  ERROR: No chunks produced.")
             return
 
-        # حتى لا تتكرر chunks إذا انعاد تشغيل processing لنفس transcript
+        # Prevent duplicate chunks if processing is re-run for the same transcript.
         TranscriptChunk.objects.filter(transcript=transcript).delete()
 
         # Step 2: Semantic English

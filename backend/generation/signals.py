@@ -9,10 +9,10 @@ from .services.orchestrator import GenerationError, generate_brd_from_schema, ge
 @receiver(post_save, sender=Extraction)
 def create_and_generate_document(sender, instance, created, **kwargs):
     """
-    بعد اكتمال مرحلة Extraction (status = completed):
-    1. ينشئ GeneratedDocument
-    2. يولّد الـ .docx مباشرة
-    بدون تدخل المستخدم.
+    After the Extraction stage is completed (status = completed):
+    1. Creates a GeneratedDocument
+    2. Generates the .docx file directly
+    without user intervention.
     """
     
     if instance.status != Extraction.STATUS_COMPLETED:
@@ -21,26 +21,26 @@ def create_and_generate_document(sender, instance, created, **kwargs):
 
     document = instance.document
 
-    # ننشئ GeneratedDocument ونربطه بالـ Extraction
+    # Create a GeneratedDocument and link it to the Extraction
     gen_doc, _ = GeneratedDocument.objects.get_or_create(
         document=document,
         defaults={"extraction": instance, "status": "IN_PROGRESS"}  # ← هنا فقط التعديل
     )
 
-    # ── معلومات غلاف الوثيقة ────────────────────────────────────
-    # هذه المعلومات تأتي من قاعدة البيانات مباشرة — لا من السكيما
-    # date    = تاريخ إنشاء الوثيقة
-    # author  = اسم صاحب المشروع
-    # version = 1.0 دائماً عند التوليد الأول
+    # ── Document cover information ─────────────────────────────
+    # This information comes directly from the database — not from the schema
+    # date    = document creation date
+    # author  = project owner name
+    # version = always 1.0 on the first generation
     cover_meta = {
         "date":    document.created_at.strftime("%B %d, %Y"),
         "author":  document.project.owner.username if document.project.owner else "—",
         "version": "1.0",
     }
 
-    # نولّد الـ .docx مباشرة
+     # Generate the .docx file directly
     try:
-        # بداية التوليد (loading للبار)
+        # Start generation process (loading state for the progress bar)
         gen_doc.status = "IN_PROGRESS"
         gen_doc.save(update_fields=["status"])
 

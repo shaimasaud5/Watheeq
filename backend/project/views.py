@@ -5,6 +5,8 @@ from rest_framework.permissions import AllowAny
 from .models import Meeting
 from .serializers import CreateProjectSerializer
 from .services import request_recall_bot
+from generation.models import GeneratedDocument
+from project.models import Project
 
 
 class CreateProjectAPI(APIView):
@@ -94,3 +96,47 @@ class PipelineStatusAPI(APIView):
             "extraction": extraction_status,
             "generation": generation_status,
         })
+
+
+def home_view(request):
+    user = request.user
+    
+    total_projects = Project.objects.filter(user=user).count()
+    
+    pending_approval = GeneratedDocument.objects.filter(
+        document__project__user=user,
+        status='GENERATED'
+    ).count()
+    
+    total_approved = GeneratedDocument.objects.filter(
+        document__project__user=user,
+        status='APPROVED'
+    ).count()
+    
+    context = {
+        'total_projects': total_projects,
+        'pending_approval': pending_approval,
+        'total_approved': total_approved,
+    }
+    return render(request, 'frontend/home.html', context)
+
+    
+
+class DeleteProjectAPI(APIView):
+    """
+    Deletes a project and all related data (meeting, transcript, documents, etc.)
+    Only the project owner can delete it.
+    """
+
+    permission_classes = [AllowAny]
+
+    def delete(self, request, project_id):
+        from .models import Project
+
+        try:
+            project = Project.objects.get(id=project_id, owner=request.user)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found"}, status=404)
+
+        project.delete()
+        return Response({"message": "Project deleted successfully"}, status=200)

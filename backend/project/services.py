@@ -21,7 +21,7 @@ def request_recall_bot(meeting_id: int) -> str:
     # 3. Build the request body
     payload = {
         "meeting_url": meeting.meeting_link,
-        "bot_name": "Watheeq Assistant",
+        "bot_name": "Watheeq Agent",
         
     }
 

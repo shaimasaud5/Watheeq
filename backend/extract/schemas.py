@@ -1,8 +1,9 @@
 # extract/schemas.py
 # ───────────────────
-# السكيمات الثابتة لوثيقتي BRD و MOM.
-# مهمة 3 تملأ هذي السكيمات من الترانسكريبت.
-# مهمة 4 تستخدم النتيجة لتوليد الـ .docx
+# Static schemas for BRD and MOM documents.
+# The Extraction stage fills these schemas using
+# information extracted from the transcript.
+# The Generation stage then uses the filled schemas to generate the final .docx document.
 
 BRD_SCHEMA = {
     "executive_summary": {

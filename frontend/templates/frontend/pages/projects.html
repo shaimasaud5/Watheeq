@@ -57,6 +57,7 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
 
 /* CONTENT */
 .content{padding:2rem;flex:1;}
+.page-actions{display:flex;justify-content:flex-end;margin-bottom:1.5rem;}
 
 /* PROJECTS GRID */
 .projects-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;}
@@ -74,6 +75,12 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
 .proj-date{font-size:11px;color:var(--muted);margin-top:4px;}
 .open-btn{width:100%;margin-top:10px;height:34px;background:var(--bl);color:var(--blue);border:1px solid var(--rule);border-radius:100px;font-size:13px;font-family:var(--body);font-weight:600;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
 .open-btn:hover{background:var(--bm);color:#fff;border-color:var(--bm);}
+.proj-card-header {
+    position: relative;
+}
+
+/* Project delete button (X icon) */
+.proj-delete-x {position: absolute;top: 10px; left: 10px;width: 26px;height: 26px;border: none;border-radius: 50%;background: rgba(255,255,255,0.2);color: white;font-size: 18px;font-weight: bold;cursor: pointer;}
 
 /* EMPTY */
 .empty-state{text-align:center;padding:4rem 2rem;color:var(--muted);}
@@ -103,11 +110,7 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
         <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         المشاريع
       </a>
-      <a href="{% url 'frontend:create_project' %}" class="nav-item">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        مشروع جديد
-      </a>
-      <a href="#" class="nav-item">
+      <a href="{% url 'frontend:help' %}" class="nav-item">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         المساعدة
       </a>
@@ -150,49 +153,133 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
         <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
       </a>
       <div class="topbar-title" style="flex:1;">المشاريع</div>
-      <a href="{% url 'frontend:create_project' %}" class="new-btn">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        مشروع جديد
-      </a>
     </div>
 
     <div class="content">
-      {% if projects %}
-        <div class="projects-grid">
-          {% for project in projects %}
-          <div class="proj-card">
-            <div class="proj-card-header {% cycle 'h1' 'h2' 'h3' %}">
-              <div class="proj-card-name">{{ project.name }}</div>
-            </div>
-            <div class="proj-card-body">
-              <div class="proj-meta-row">
-                <span class="proj-meta-label">العميل:</span>
-                <span class="proj-meta-val">{{ project.client|default:"—" }}</span>
-              </div>
-              <div class="proj-meta-row">
-                <span class="proj-meta-label">المدير:</span>
-                <span class="proj-meta-val">{{ project.manager|default:"—" }}</span>
-              </div>
-              <div class="proj-date">آخر تحديث: {{ project.created_at|date:"j F Y" }}</div>
-              <a href="{% url 'frontend:overview' project.id %}" class="open-btn">فتح المشروع</a>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="empty-state">
-          <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-          <p>لا يوجد مشاريع بعد.</p>
-          <a href="{% url 'frontend:create_project' %}">
-            <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#fff;fill:none;stroke-width:2;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-            أنشئ مشروعك الأول
-          </a>
-        </div>
-      {% endif %}
-    </div>
+  <div class="page-actions">
+    <a href="{% url 'frontend:create_project' %}" class="new-btn">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      مشروع جديد
+    </a>
   </div>
 
+  {% if projects %}
+  <div class="projects-grid">
+
+  {% for project in projects %}
+  <div class="proj-card">
+
+    <div class="proj-card-header {% cycle 'h1' 'h2' 'h3' %}">
+
+      <button class="proj-delete-x"
+              onclick="confirmDelete({{ project.id }}, '{{ project.name|escapejs }}')">
+        ×
+      </button>
+
+      <div class="proj-card-name">{{ project.name }}</div>
+    </div>
+
+    <div class="proj-card-body">
+      <div class="proj-meta-row">
+        <span class="proj-meta-label">العميل:</span>
+        <span class="proj-meta-val">{{ project.client|default:"—" }}</span>
+      </div>
+
+      <div class="proj-meta-row">
+        <span class="proj-meta-label">المدير:</span>
+        <span class="proj-meta-val">{{ project.manager|default:"—" }}</span>
+      </div>
+
+      <div class="proj-date">آخر تحديث: {{ project.created_at|date:"j F Y" }}</div>
+
+      <a href="{% url 'frontend:overview' project.id %}" class="open-btn">
+        فتح المشروع
+      </a>
+    </div>
+
+  </div>
+  {% endfor %}
+
 </div>
+
+{% else %}
+<div class="empty-state" style="display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:70vh;">
+  <svg viewBox="0 0 24 24">
+    <rect x="2" y="3" width="20" height="14" rx="2"/>
+    <line x1="8" y1="21" x2="16" y2="21"/>
+    <line x1="12" y1="17" x2="12" y2="21"/>
+  </svg>
+
+  <p>لا يوجد مشاريع بعد.</p>
+</div>
+{% endif %}
+</div>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== "") {
+
+        const cookies = document.cookie.split(";");
+
+        for (let cookie of cookies) {
+
+            cookie = cookie.trim();
+
+            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+
+                cookieValue = decodeURIComponent(
+                    cookie.substring(name.length + 1)
+                );
+
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
+
+function confirmDelete(projectId, projectName) {
+
+    if (!confirm(`هل أنتِ متأكدة من حذف مشروع "${projectName}"؟`)) {
+        return;
+    }
+
+    fetch(`/api/projects/${projectId}/delete/`, {
+
+        method: "DELETE",
+
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+        },
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        if (data.message) {
+
+            location.reload();
+
+        } else {
+
+            alert(data.error || "فشل حذف المشروع.");
+        }
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        alert("حدث خطأ أثناء الاتصال بالخادم.");
+    });
+}
+</script>
+
+
 <script>
 function toggleDropdown(){
   const d=document.getElementById('dropdown');

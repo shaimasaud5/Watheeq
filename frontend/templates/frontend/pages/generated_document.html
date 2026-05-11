@@ -76,13 +76,14 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
 .content-card-header{padding:1rem 1.8rem;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;}
 .content-card-title{font-size:14px;font-weight:700;color:var(--ink);}
 .content-body{padding:1.8rem;min-height:400px;}
-.doc-text{font-size:14px;color:var(--ink);line-height:2;white-space:pre-wrap;}
+.doc-text{font-size:14px;color:var(--ink);line-height:2;white-space:pre-wrap;direction:ltr;text-align:left;}
 .no-content{text-align:center;padding:4rem 2rem;color:var(--muted);}
 .no-content svg{width:40px;height:40px;stroke:var(--rule);fill:none;stroke-width:1.5;margin-bottom:1rem;}
 .no-content p{font-size:14px;}
 .meta-info{display:flex;gap:20px;flex-wrap:wrap;padding:1rem 1.8rem;background:var(--paper);border-top:1px solid var(--rule);}
 .meta-chip{font-size:12px;color:var(--muted);}
 .meta-chip strong{color:var(--ink);font-weight:600;}
+.hidden {display: none !important;}
 
 /* POPUP OVERLAY */
 .popup-overlay{position:fixed;inset:0;background:rgba(13,30,51,0.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px);}
@@ -129,8 +130,9 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
       <a href="{% url 'frontend:projects' %}" class="nav-item active">
         <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>المشاريع
       </a>
-      <a href="{% url 'frontend:create_project' %}" class="nav-item">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>مشروع جديد
+      <a href="{% url 'frontend:help' %}" class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        المساعدة
       </a>
     </nav>
     <div class="sb-bottom">
@@ -216,14 +218,6 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
           </div>
           {% endif %}
         </div>
-        {% if doc.meta %}
-        <div class="meta-info">
-          {% if doc.meta.model %}<span class="meta-chip">النموذج: <strong>{{ doc.meta.model }}</strong></span>{% endif %}
-          {% if doc.meta.elapsed_seconds %}<span class="meta-chip">وقت التوليد: <strong>{{ doc.meta.elapsed_seconds }}ث</strong></span>{% endif %}
-          {% if doc.meta.regenerate_count %}<span class="meta-chip">إعادة التوليد: <strong>{{ doc.meta.regenerate_count }}/3</strong></span>{% endif %}
-        </div>
-        {% endif %}
-      </div>
 
     </div>
   </div>
@@ -245,11 +239,15 @@ body{font-family:var(--body);background:var(--paper);color:var(--ink);min-height
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <span id="regen-info-text">يمكنك إعادة التوليد <strong id="regen-remaining">{{ regen_remaining }}</strong> مرة إضافية.</span>
       </div>
-
       <div id="regen-warn-box" class="regen-warn hidden">
-        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <svg viewBox="0 0 24 24">
+          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 0 00-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
         <span>هذه آخر مرة يمكنك إعادة التوليد. راجع الوثيقة جيداً قبل الاعتماد.</span>
       </div>
+     
 
       <div class="popup-actions">
         <button class="btn-approve" onclick="approveDoc()">
@@ -292,7 +290,7 @@ function updateRegenUI() {
   if (regenRemaining <= 0) {
     btnRegen.disabled = true;
     infoBox.classList.add('hidden');
-    warnBox.classList.remove('hidden');
+    warnBox.classList.add('hidden');
   } else if (regenRemaining === 1) {
     btnRegen.disabled = false;
     infoBox.classList.add('hidden');

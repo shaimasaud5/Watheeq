@@ -66,7 +66,7 @@ def process_recording_done_webhook(bot_id: str):
 
         whisper_segments = transcribe_audio(video_path)
 
-        # هنا فقط حالة meeting العامة للبار الأول
+        # Only the general meeting status for Bar 1 is updated here
         meeting.status = Meeting.STATUS_TRANSCRIBED
         meeting.save(update_fields=["status"])
 
@@ -80,7 +80,7 @@ def process_recording_done_webhook(bot_id: str):
         transcript.meeting_link = meeting.meeting_link
         transcript.processed_json = processed_json
         transcript.processed_at = timezone.now()
-        # تحديث البار الثاني تاسك 1 تصير كومبليتد = وصل الجيسون فايل = تنظف النص 
+        # Update Bar 2 Task 1 to completed = JSON file received = text cleaned
         transcript.status = Transcript.STATUS_COMPLETED
         transcript.error_message = ""
         transcript.save(update_fields=[
