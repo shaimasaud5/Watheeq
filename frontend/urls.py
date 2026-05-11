@@ -18,31 +18,18 @@ urlpatterns = [
     path('projects/<int:project_id>/documents/', views.documents, name='documents'),
     path('projects/<int:project_id>/processing/', views.processing, name='processing'),
     path('documents/<int:doc_id>/', views.generated_document, name='generated_document'),
-    path("projects/<int:project_id>/generate-new-document/",views.generate_new_document,name="generate_new_document"),
-]
-
-urlpatterns = [
-    # ... الموجودة ...
-
-    path('password-reset/',
-         auth_views.PasswordResetView.as_view(
-             template_name='frontend/auth/password_reset.html',
-             email_template_name='frontend/auth/password_reset_email.txt',
-         ),
-         name='password_reset'),
-
-    path('password-reset/done/',
-         auth_views.PasswordResetDoneView.as_view(
-             template_name='frontend/auth/password_reset_done.html'),
-         name='password_reset_done'),
-
-    path('password-reset-confirm/<uidb64>/<token>/',
-         auth_views.PasswordResetConfirmView.as_view(
-             template_name='frontend/auth/password_reset_confirm.html'),
-         name='password_reset_confirm'),
-
-    path('password-reset-complete/',
-         auth_views.PasswordResetCompleteView.as_view(
-             template_name='frontend/auth/password_reset_complete.html'),
-         name='password_reset_complete'),
+    path("projects/<int:project_id>/generate-new-document/", views.generate_new_document, name="generate_new_document"),
+    path('password-reset/', auth_views.PasswordResetView.as_view(
+        template_name='frontend/auth/password_reset.html',
+        email_template_name='frontend/auth/password_reset_email.txt',
+    ), name='password_reset'),
+    path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(
+        template_name='frontend/auth/password_reset_done.html'),
+        name='password_reset_done'),
+    path('password-reset-confirm/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+        template_name='frontend/auth/password_reset_confirm.html'),
+        name='password_reset_confirm'),
+    path('password-reset-complete/', auth_views.PasswordResetCompleteView.as_view(
+        template_name='frontend/auth/password_reset_complete.html'),
+        name='password_reset_complete'),
 ]
