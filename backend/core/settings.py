@@ -35,6 +35,9 @@ ALLOWED_HOSTS = [
     ".ngrok-free.dev",
     ".railway.app",  # ← أضفناه للـ Railway
 ]
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.railway.app",
+]
 
 
 # Application definition
