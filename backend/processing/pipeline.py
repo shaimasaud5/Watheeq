@@ -36,7 +36,7 @@ def run_processing_pipeline(transcript: Transcript):
 
         # Step 1: Chunking
         print(f"\n[ STEP 1 ] Chunking...")
-        chunks = simple_chunk(transcript_data, max_chars=300, overlap_lines=1)
+        chunks = simple_chunk(transcript_data, max_chars=500, overlap_lines=1)
         print(f"  Total chunks: {len(chunks)}")
 
         if not chunks:

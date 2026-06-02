@@ -2,7 +2,7 @@ import requests
 import os, time
 from groq import Groq
 
-def simple_chunk(transcript, max_chars=300, overlap_lines=1):
+def simple_chunk(transcript, max_chars=500, overlap_lines=1):
     turns = transcript.get("turns", [])
     chunks = []
     current_chunk = []
@@ -136,7 +136,7 @@ def generate_embeddings(texts, model="mxbai-embed-large"):
         "input": texts,
         "keep_alive": "10m"
     }
-    r = requests.post(url, json=payload, timeout=(10, 300))
+    r = requests.post(url, json=payload, timeout=(10, 500))
     r.raise_for_status()
     result = r.json()
     embeddings = result.get("embeddings", [])
